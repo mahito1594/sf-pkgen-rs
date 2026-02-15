@@ -3,6 +3,7 @@ pub mod error;
 pub mod sf_client;
 
 mod ansi;
+mod non_interactive;
 mod output;
 mod signal;
 mod tui;
@@ -21,17 +22,17 @@ pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(),
     // 0. Validate non-interactive mode arguments
     if (args.all || args.types.is_some()) && !args.non_interactive {
         return Err(AppError::ValidationError {
-            message: "--all and --types require --non-interactive".to_string(),
+            message: "--all and --types require --non-interactive.".to_string(),
         });
     }
     if args.non_interactive && !args.all && args.types.is_none() {
         return Err(AppError::ValidationError {
-            message: "--non-interactive requires --all or --types".to_string(),
+            message: "In non-interactive mode, specify --all or --types.".to_string(),
         });
     }
     if args.non_interactive && args.output_file.is_none() {
         return Err(AppError::ValidationError {
-            message: "--non-interactive requires --output-file".to_string(),
+            message: "In non-interactive mode, --output-file is required.".to_string(),
         });
     }
 
@@ -64,13 +65,24 @@ pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(),
     // Sort metadata types alphabetically for consistent TUI display
     metadata_types.sort_by(|a, b| a.xml_name.cmp(&b.xml_name));
 
-    // 4. TUI: select metadata types and components
-    let selections = tui::run_tui(
-        metadata_types,
-        sf_client,
-        args.target_org.as_deref(),
-        &api_version,
-    )?;
+    // 4. Select metadata types and components
+    let selections = if args.non_interactive {
+        non_interactive::resolve(
+            sf_client,
+            &metadata_types,
+            args.all,
+            args.types.as_deref(),
+            args.target_org.as_deref(),
+            &api_version,
+        )?
+    } else {
+        tui::run_tui(
+            metadata_types,
+            sf_client,
+            args.target_org.as_deref(),
+            &api_version,
+        )?
+    };
 
     // 5. Determine output path
     let output_path = match &args.output_file {
