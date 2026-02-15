@@ -94,24 +94,29 @@ fn parse_sf_response(stdout: &str, stderr: &str) -> Result<serde_json::Value, Ap
         });
     }
 
-    response
-        .result
-        .ok_or_else(|| AppError::JsonParseError {
-            stderr: stderr.to_string(),
-        })
+    response.result.ok_or_else(|| AppError::JsonParseError {
+        stderr: stderr.to_string(),
+    })
 }
 
 fn run_sf_command(args: &[&str]) -> Result<serde_json::Value, AppError> {
-    let output = Command::new("sf")
-        .args(args)
-        .output()
-        .map_err(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                AppError::SfCliNotFound
-            } else {
-                AppError::IoError(e)
-            }
-        })?;
+    let output = Command::new("sf").args(args).output().map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            AppError::SfCliNotFound
+        } else {
+            AppError::IoError(e)
+        }
+    })?;
+
+    // SIGINT check after child process completes
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::ExitStatusExt;
+        if output.status.signal() == Some(2) {
+            return Err(AppError::Cancelled);
+        }
+    }
+    crate::signal::check_interrupted()?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -147,16 +152,13 @@ pub struct RealSfClient;
 
 impl SfClient for RealSfClient {
     fn check_sf_exists(&self) -> Result<(), AppError> {
-        Command::new("sf")
-            .arg("--version")
-            .output()
-            .map_err(|e| {
-                if e.kind() == std::io::ErrorKind::NotFound {
-                    AppError::SfCliNotFound
-                } else {
-                    AppError::IoError(e)
-                }
-            })?;
+        Command::new("sf").arg("--version").output().map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                AppError::SfCliNotFound
+            } else {
+                AppError::IoError(e)
+            }
+        })?;
         Ok(())
     }
 
@@ -187,7 +189,14 @@ impl SfClient for RealSfClient {
         target_org: Option<&str>,
         api_version: &str,
     ) -> Result<Vec<MetadataType>, AppError> {
-        let mut args = vec!["org", "list", "metadata-types", "--api-version", api_version, "--json"];
+        let mut args = vec![
+            "org",
+            "list",
+            "metadata-types",
+            "--api-version",
+            api_version,
+            "--json",
+        ];
         if let Some(org) = target_org {
             args.push("-o");
             args.push(org);
@@ -215,7 +224,16 @@ impl SfClient for RealSfClient {
         target_org: Option<&str>,
         api_version: &str,
     ) -> Result<Vec<MetadataComponent>, AppError> {
-        let mut args = vec!["org", "list", "metadata", "-m", metadata_type, "--api-version", api_version, "--json"];
+        let mut args = vec![
+            "org",
+            "list",
+            "metadata",
+            "-m",
+            metadata_type,
+            "--api-version",
+            api_version,
+            "--json",
+        ];
         if let Some(org) = target_org {
             args.push("-o");
             args.push(org);
@@ -482,10 +500,7 @@ mod tests {
             name: Some("EmptyMsgError".to_string()),
             stack: Some("trace here".to_string()),
         };
-        assert_eq!(
-            build_error_message(&response),
-            "EmptyMsgError\ntrace here"
-        );
+        assert_eq!(build_error_message(&response), "EmptyMsgError\ntrace here");
     }
 
     #[test]
@@ -497,9 +512,6 @@ mod tests {
             name: Some("WhitespaceMsg".to_string()),
             stack: Some("stack info".to_string()),
         };
-        assert_eq!(
-            build_error_message(&response),
-            "WhitespaceMsg\nstack info"
-        );
+        assert_eq!(build_error_message(&response), "WhitespaceMsg\nstack info");
     }
 }

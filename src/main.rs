@@ -3,6 +3,7 @@ use sf_pkgen::cli::{Cli, Commands};
 use sf_pkgen::sf_client::RealSfClient;
 
 fn main() {
+    sf_pkgen::install_handler_once();
     let cli = Cli::parse();
 
     match cli.command {

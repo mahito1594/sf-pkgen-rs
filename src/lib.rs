@@ -4,9 +4,12 @@ pub mod sf_client;
 
 mod ansi;
 mod output;
+mod signal;
 mod tui;
 mod wildcard;
 mod xml;
+
+pub use signal::install_handler_once;
 
 use cli::GenerateArgs;
 use error::AppError;
@@ -17,6 +20,7 @@ use xml::{PackageXmlInput, generate_package_xml};
 pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(), AppError> {
     // 1. Check sf CLI exists
     sf_client.check_sf_exists()?;
+    signal::check_interrupted()?;
 
     // 2. Determine API version
     let api_version = match &args.api_version {
@@ -28,6 +32,7 @@ pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(),
                 .api_version
         }
     };
+    signal::check_interrupted()?;
 
     // 3. Fetch metadata types
     eprintln!("Fetching metadata types...");
@@ -37,6 +42,7 @@ pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(),
     if metadata_types.is_empty() {
         return Err(AppError::NoMetadataTypes);
     }
+    signal::check_interrupted()?;
 
     // Sort metadata types alphabetically for consistent TUI display
     metadata_types.sort_by(|a, b| a.xml_name.cmp(&b.xml_name));
@@ -54,6 +60,7 @@ pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(),
         Some(p) => p.clone(),
         None => prompt_output_path()?,
     };
+    signal::check_interrupted()?;
 
     // 6. Validate output path
     validate_output_path(&output_path)?;
