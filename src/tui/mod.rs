@@ -4,15 +4,15 @@ pub mod fuzzy;
 pub mod ui;
 
 use std::collections::BTreeMap;
-use std::panic;
+use std::panic::{self, PanicHookInfo};
 
 use crossterm::event::{Event, read as crossterm_read};
 use crossterm::execute;
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
-use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
+use ratatui::backend::CrosstermBackend;
 
 use crate::error::AppError;
 use crate::sf_client::{MetadataType, SfClient};
@@ -20,6 +20,36 @@ use crate::sf_client::{MetadataType, SfClient};
 use self::app::AppState;
 use self::event::{Action, handle_key_event};
 use self::ui::draw;
+
+type PanicHook = Box<dyn Fn(&PanicHookInfo<'_>) + Send + Sync + 'static>;
+
+struct PanicHookGuard {
+    original_hook: Option<PanicHook>,
+}
+
+impl PanicHookGuard {
+    fn install() -> Self {
+        let original_hook = panic::take_hook();
+        panic::set_hook(Box::new(|info| {
+            if let Ok(mut panic_tty) = open_tty() {
+                restore_terminal(&mut panic_tty);
+            }
+            eprintln!("{info}");
+        }));
+        PanicHookGuard {
+            original_hook: Some(original_hook),
+        }
+    }
+}
+
+impl Drop for PanicHookGuard {
+    fn drop(&mut self) {
+        let _ = panic::take_hook();
+        if let Some(hook) = self.original_hook.take() {
+            panic::set_hook(hook);
+        }
+    }
+}
 
 fn open_tty() -> Result<std::fs::File, AppError> {
     std::fs::OpenOptions::new()
@@ -49,14 +79,8 @@ pub fn run_tui(
         return Err(AppError::IoError(e));
     }
 
-    // Install panic hook to restore terminal on panic
-    let original_hook = panic::take_hook();
-    panic::set_hook(Box::new(move |info| {
-        if let Ok(mut panic_tty) = open_tty() {
-            restore_terminal(&mut panic_tty);
-        }
-        original_hook(info);
-    }));
+    // Install panic hook to restore terminal on panic (RAII: Drop restores original hook)
+    let _panic_guard = PanicHookGuard::install();
 
     let backend = CrosstermBackend::new(match open_tty() {
         Ok(f) => f,
@@ -82,8 +106,7 @@ pub fn run_tui(
     // Restore terminal
     restore_terminal(&mut tty);
 
-    // Restore default panic hook
-    let _ = panic::take_hook();
+    // _panic_guard is dropped here, restoring the original panic hook
 
     result
 }
@@ -96,18 +119,14 @@ fn run_event_loop(
     api_version: &str,
 ) -> Result<BTreeMap<String, Vec<String>>, AppError> {
     loop {
-        terminal
-            .draw(|f| draw(f, app))
-            .map_err(AppError::IoError)?;
+        terminal.draw(|f| draw(f, app)).map_err(AppError::IoError)?;
 
         if let Event::Key(key_event) = crossterm_read().map_err(AppError::IoError)? {
             match handle_key_event(app, key_event) {
                 Action::None => {}
                 Action::LoadComponents(type_name) => {
                     // Redraw with Loading state before blocking
-                    terminal
-                        .draw(|f| draw(f, app))
-                        .map_err(AppError::IoError)?;
+                    terminal.draw(|f| draw(f, app)).map_err(AppError::IoError)?;
                     load_components(app, sf_client, &type_name, target_org, api_version);
                 }
                 Action::Confirm(selections) => {
