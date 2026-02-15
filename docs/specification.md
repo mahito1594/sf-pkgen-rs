@@ -46,7 +46,34 @@ OPTIONS:
   -o, --target-org <ALIAS|USERNAME>   対象 org（省略時: sf CLI のデフォルト org）
   -a, --api-version <VERSION>         API version（省略時: sf CLI のデフォルト値）
   -f, --output-file <PATH>            出力先ファイルパス（省略時: プロンプトで尋ねる）
+      --non-interactive               非対話モード（--all または --types が必須、--output-file が必須）
+      --all                           全メタデータ型を選択（非対話モード専用、--types と排他）
+      --types <TYPE,...>              カンマ区切りのメタデータ型リスト（非対話モード専用、--all と排他）
 ```
+
+### 非対話モード
+
+CI/CD パイプライン等で TUI なしに package.xml を生成するモード。
+
+**引数の組み合わせ制約:**
+- `--non-interactive` 指定時: `--all` または `--types` のいずれかが必須
+- `--non-interactive` 指定時: `--output-file` が必須（対話プロンプト禁止）
+- `--all` と `--types` は同時指定不可
+- `--all` / `--types` は `--non-interactive` なしでは使用不可
+
+**`--types` の処理規則:**
+- カンマ区切りで複数指定可能（例: `--types ApexClass,Report`）
+- 各要素は trim 後に処理、空要素はエラー
+- 重複は最初の出現のみ残して正規化
+- 型名は case-sensitive
+
+**選択解決ロジック:**
+- `--all` 時: 全メタデータ型を対象とする
+- ワイルドカード対応型: `*`（全件取得）を選択
+- ワイルドカード非対応型（フォルダベース型）: `sf org list metadata` で個別コンポーネントを取得
+- 取得失敗時: 即座にエラー終了（CI での予測可能性を優先）
+- コンポーネント 0 件の型は除外
+- 最終選択が空の場合: エラー終了
 
 ## ユーザーフロー
 
@@ -90,6 +117,11 @@ $ sf-pkgen generate
 ## 内部処理フロー
 
 ```
+0. 引数バリデーション（非対話モードの組み合わせチェック）
+   └─ --all/--types を --non-interactive なしで指定: エラー終了（コード 1）
+   └─ --non-interactive に --all も --types もなし: エラー終了（コード 1）
+   └─ --non-interactive に --output-file なし: エラー終了（コード 1）
+
 1. sf CLI の存在確認
    └─ 見つからない場合: エラーメッセージを表示して終了（コード 1）
 
@@ -104,17 +136,30 @@ $ sf-pkgen generate
    $ sf org list metadata-types [-o <org>] --api-version <ver> --json
    └─ 失敗時: エラー詳細を表示して終了（コード 1）
 
-4. ratatui ベースの TUI でメタデータ型とコンポーネントを提示・選択
-   - 左ペイン: メタデータ型一覧（fuzzy search 対応、カーソル移動でハイライト）
-   - 右ペイン: ハイライト中の型のコンポーネント一覧（選択可能）
-     - ワイルドカード対応型: 先頭に `*` エントリを表示
-     - ワイルドカード非対応型: 個別コンポーネントのみ表示
-     - コンポーネント一覧は `sf org list metadata -m <Type> [-o <org>] --api-version <ver> --json` で取得（キャッシュ）
-   - 選択結果の保持: 型 → 選択されたコンポーネントのリスト（`*` または個別の `fullName` リスト）のマッピング
-   - `*` と個別コンポーネントは排他: `*` 選択時は個別選択を自動解除し、個別選択時は `*` を自動解除する
-   └─ Enter 確定: 1つ以上のコンポーネントが選択されている場合
-   └─ Enter 確定で選択コンポーネントが0件の場合: エラーメッセージを表示して終了（コード 1）
-   └─ Esc / Ctrl+C: 終了（コード 130）
+4. メタデータ型とコンポーネントを選択
+   ※ 各フェーズ境界で Ctrl+C (SIGINT) を検出し、検出時は終了（コード 130）
+
+   4a. 非対話モード (--non-interactive 指定時):
+       - 対象型を決定（--all: 全型、--types: 指定型のみ）
+       - 指定型の存在チェック（未知の型はエラー終了）
+       - ワイルドカード対応型: * を選択
+       - フォルダベース型: sf org list metadata で全コンポーネントを取得
+       - 取得失敗時: エラー終了（コード 1）
+       - コンポーネント 0 件の型は除外
+       └─ 最終選択が空: エラー終了（コード 1）
+
+   4b. 対話モード (デフォルト):
+       ratatui ベースの TUI でメタデータ型とコンポーネントを提示・選択
+       - 左ペイン: メタデータ型一覧（fuzzy search 対応、カーソル移動でハイライト）
+       - 右ペイン: ハイライト中の型のコンポーネント一覧（選択可能）
+         - ワイルドカード対応型: 先頭に `*` エントリを表示
+         - ワイルドカード非対応型: 個別コンポーネントのみ表示
+         - コンポーネント一覧は `sf org list metadata -m <Type> [-o <org>] --api-version <ver> --json` で取得（キャッシュ）
+       - 選択結果の保持: 型 → 選択されたコンポーネントのリスト（`*` または個別の `fullName` リスト）のマッピング
+       - `*` と個別コンポーネントは排他: `*` 選択時は個別選択を自動解除し、個別選択時は `*` を自動解除する
+       └─ Enter 確定: 1つ以上のコンポーネントが選択されている場合
+       └─ Enter 確定で選択コンポーネントが0件の場合: エラーメッセージを表示して終了（コード 1）
+       └─ Esc / Ctrl+C: 終了（コード 130）
 
 5. 出力先を決定
    a. --output-file 指定あり → その値を使用
@@ -287,19 +332,23 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 
 | 状況 | 対応 |
 |------|------|
+| `--all`/`--types` を `--non-interactive` なしで指定 | `--all and --types require --non-interactive.` → 終了コード 1 |
+| `--non-interactive` に `--all` も `--types` もなし | `In non-interactive mode, specify --all or --types.` → 終了コード 1 |
+| `--non-interactive` に `--output-file` なし | `In non-interactive mode, --output-file is required.` → 終了コード 1 |
 | `sf` コマンドが PATH に存在しない | `sf CLI not found. Visit https://developer.salesforce.com/tools/salesforcecli to install it.` → 終了コード 1 |
 | sf コマンドの stdout が JSON としてパースできない | stderr の内容を表示 + `There may be an issue with sf CLI or its plugins. Run 'sf plugins --core' and verify that @salesforce/plugin-org is included.` → 終了コード 1 |
 | API version の取得失敗（`sf org display` のエラー） | sf CLI のエラーメッセージを表示 + `Please specify the API version explicitly with the --api-version option.` → 終了コード 1 |
 | org 認証切れ・デフォルト org なし | sf CLI の `message` を stderr に表示 → 終了コード 1 |
 | メタデータ型の取得失敗 | sf CLI の `message` を stderr に表示 → 終了コード 1 |
 | メタデータ型の取得結果が 0 件 | `No metadata types were found.` → 終了コード 1 |
+| 非対話モードで未知のメタデータ型を指定 | `Unknown metadata type: {name}.` → 終了コード 1 |
 | ユーザーが1つもコンポーネントを選択せず確定 | `No metadata components selected.` → 終了コード 1 |
 | 出力先パスが空（プロンプトで未入力） | `Please enter an output file path.` → 終了コード 1 |
 | 出力先パスがディレクトリ | `{path} is a directory.` → 終了コード 1 |
 | 出力先ファイルが既に存在する | `{path} already exists.` → 終了コード 1 |
 | 出力先の親ディレクトリが存在しない | `Directory {parent} does not exist.` → 終了コード 1 |
 | 出力先ファイルへの書き込み失敗 | stderr に `{path}: {error details}` を表示 → 終了コード 1 |
-| Ctrl+C によるキャンセル | 終了コード 130（TUI 中は ratatui/crossterm が検知、コマンド実行中は OS のシグナルハンドリング） |
+| Ctrl+C によるキャンセル | 終了コード 130（TUI 中は crossterm イベントで検知、それ以外は `ctrlc` クレートでフェーズ境界ごとに検出） |
 
 ## 実装上の注意
 
@@ -333,7 +382,6 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 ## 初期スコープ外（将来検討）
 
 - オフラインモード（プリセット型一覧による org 接続不要の生成）
-- 非対話モード（`--types <A,B,C>` や `--all` による引数指定）
 - 既存 `package.xml` とのマージ
 - `validate` サブコマンド（package.xml の構文検証）
 - `diff` サブコマンド（2つの package.xml の差分表示）

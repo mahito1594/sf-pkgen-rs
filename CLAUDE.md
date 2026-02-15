@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Salesforce 開発用の `package.xml` をインタラクティブに生成する Rust 製 CLI ツール。sf CLI (v2) と連携し、TUI でメタデータ型・コンポーネントを選択して package.xml を生成する。
 
-詳細は `docs/specification.md`（仕様書）と `docs/plan-phase1.md`（実装計画・進捗状況）を参照。
+詳細は `docs/specification.md`（仕様書）、`docs/plan-phase1.md`（Phase 1 実装計画）、`docs/plan-phase2.md`（Phase 2 実装計画）を参照。
 
 ## ビルド・テスト・Lint
 
@@ -27,17 +27,23 @@ cargo clippy                    # lint
 
 ## アーキテクチャ
 
+### クレート構成
+
+lib+bin 分離構成。`src/lib.rs` がライブラリクレート（公開 API）、`src/main.rs` がバイナリクレート（CLI パース + DI のみ）。`run_generate` は `lib.rs` に定義され、テストからモック `SfClient` を注入して呼び出せる。
+
 ### I/O チャネル
 
 アプリケーション固有の出力は stdout を使わない。進捗メッセージ・エラー・プロンプトは stderr、TUI は /dev/tty、XML はファイル出力。`--help` / `--version` は clap のデフォルト動作（stdout）に従う。
 
-### 処理フロー (`main.rs: run_generate`)
+### 処理フロー (`lib.rs: run_generate`)
 
-1. sf CLI 存在確認 → 2. API version 決定 → 3. メタデータ型一覧取得 → 4. TUI で選択 → 5. 出力先決定 → 6. XML 生成・書き込み
+1. バリデーション（非対話モード引数の組み合わせチェック） → 2. sf CLI 存在確認 → 3. API version 決定 → 4. メタデータ型一覧取得 → 5a. 非対話モード: `non_interactive::resolve()` で選択決定 / 5b. 対話モード: TUI で選択 → 6. 出力先決定 → 7. XML 生成・書き込み
+
+各フェーズ境界で `signal::check_interrupted()` により Ctrl+C を検出する。
 
 ### sf CLI 連携 (`sf_client.rs`)
 
-`SfClient` trait で sf CLI との連携を抽象化。`RealSfClient` が実装を持ち、テストではモック実装に差し替え可能。sf CLI の `--json` 出力は ANSI エスケープが混入しうるため、`ansi.rs` で除去してから JSON パースする。
+`SfClient` trait で sf CLI との連携を抽象化。`RealSfClient` が実装を持ち、テストではモック実装に差し替え可能。sf CLI の `--json` 出力は ANSI エスケープが混入しうるため、`ansi.rs` で除去してから JSON パースする。`run_sf_command` は子プロセスの SIGINT 終了と `INTERRUPTED` フラグの両方を検出する。
 
 ### TUI (`tui/`)
 
@@ -46,9 +52,18 @@ cargo clippy                    # lint
 - `ui.rs`: `draw()`（`AppState` を受け取り描画するだけ、状態変更なし）
 - `event.rs`: `handle_key_event()` → 副作用なしの `Action` enum を返す。`mod.rs` のイベントループが `Action` を解釈して副作用を実行
 - `fuzzy.rs`: `nucleo-matcher` による fuzzy search ラッパー
+- `mod.rs`: `PanicHookGuard`（RAII）でパニック時のターミナル復元を保証
 
 ワイルドカード（`*`）と個別コンポーネントの選択は排他的。`wildcard.rs` のハードコードリストでフォルダベース型（wildcard 非対応）を判定する。
 
+### 非対話モード (`non_interactive.rs`)
+
+`--non-interactive` フラグで TUI をスキップし、CI/CD 向けに package.xml を生成する。`resolve()` 関数が対象型の決定（`--all` / `--types`）、未知型チェック、wildcard/list_metadata 分岐、選択マップ生成を行う。
+
+### シグナルハンドリング (`signal.rs`)
+
+`ctrlc` クレートで Ctrl+C を捕捉し、`AtomicBool` フラグで管理。`run_generate` のフェーズ境界と `run_sf_command` の子プロセス完了後にフラグを確認し、`AppError::Cancelled`（終了コード 130）に変換する。
+
 ### エラーと終了コード (`error.rs`)
 
-`AppError` enum の各バリアントが `exit_code()` で終了コードにマッピングされる。`Cancelled` → 130、それ以外 → 1。clap の引数不正は 2。
+`AppError` enum の各バリアントが `exit_code()` で終了コードにマッピングされる。`Cancelled` → 130、それ以外 → 1。clap の引数不正は 2。`ValidationError` は非対話モードの引数組み合わせエラー用。
