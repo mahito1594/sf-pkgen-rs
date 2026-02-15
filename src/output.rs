@@ -133,7 +133,10 @@ mod tests {
         // We verify the parent-resolution logic by using a tempdir as cwd context:
         // Path::new("file.xml").parent() returns Some(""), and our code treats that as "."
         let parent = Path::new("package.xml").parent().unwrap();
-        assert!(parent.as_os_str().is_empty(), "parent of bare filename should be empty");
+        assert!(
+            parent.as_os_str().is_empty(),
+            "parent of bare filename should be empty"
+        );
         // The fallback to "." is exercised when validate_output_path is called
         // with a bare filename. Since cwd always exists in test runners, this succeeds.
         let path = Path::new("__test_sf_pkgen_nonexistent_file__.xml");

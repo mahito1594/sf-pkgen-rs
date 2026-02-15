@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Writer;
+use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 
 pub struct PackageXmlInput {
     /// Map of metadata type name to selected members (sorted by BTreeMap key order).
@@ -107,10 +107,7 @@ fn sort_members(members: &mut Vec<String>) {
 mod tests {
     use super::*;
 
-    fn make_input(
-        types: Vec<(&str, Vec<&str>)>,
-        api_version: &str,
-    ) -> PackageXmlInput {
+    fn make_input(types: Vec<(&str, Vec<&str>)>, api_version: &str) -> PackageXmlInput {
         let mut map = BTreeMap::new();
         for (name, members) in types {
             map.insert(
@@ -155,16 +152,16 @@ mod tests {
         let xml = generate_package_xml(&input);
         let ac_pos = xml.find("<members>AccountController</members>").unwrap();
         let cs_pos = xml.find("<members>ContactService</members>").unwrap();
-        assert!(ac_pos < cs_pos, "AccountController should come before ContactService");
+        assert!(
+            ac_pos < cs_pos,
+            "AccountController should come before ContactService"
+        );
     }
 
     #[test]
     fn wildcard_always_first_among_members() {
         // Even though `*` comes after `A` in some orderings, it should be first
-        let input = make_input(
-            vec![("ApexClass", vec!["AccountController", "*"])],
-            "62.0",
-        );
+        let input = make_input(vec![("ApexClass", vec!["AccountController", "*"])], "62.0");
         let xml = generate_package_xml(&input);
         let star_pos = xml.find("<members>*</members>").unwrap();
         let ac_pos = xml.find("<members>AccountController</members>").unwrap();
@@ -174,16 +171,16 @@ mod tests {
     #[test]
     fn types_sorted_by_name() {
         let input = make_input(
-            vec![
-                ("CustomObject", vec!["Account"]),
-                ("ApexClass", vec!["*"]),
-            ],
+            vec![("CustomObject", vec!["Account"]), ("ApexClass", vec!["*"])],
             "62.0",
         );
         let xml = generate_package_xml(&input);
         let apex_pos = xml.find("<name>ApexClass</name>").unwrap();
         let custom_pos = xml.find("<name>CustomObject</name>").unwrap();
-        assert!(apex_pos < custom_pos, "ApexClass should come before CustomObject");
+        assert!(
+            apex_pos < custom_pos,
+            "ApexClass should come before CustomObject"
+        );
     }
 
     #[test]
@@ -216,7 +213,10 @@ mod tests {
         let xml = generate_package_xml(&input);
         let members_pos = xml.find("<members>Foo</members>").unwrap();
         let name_pos = xml.find("<name>ApexClass</name>").unwrap();
-        assert!(members_pos < name_pos, "<members> should come before <name>");
+        assert!(
+            members_pos < name_pos,
+            "<members> should come before <name>"
+        );
     }
 
     #[test]

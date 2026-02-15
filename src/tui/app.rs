@@ -233,8 +233,10 @@ impl AppState {
     pub fn set_components(&mut self, type_name: &str, result: Result<Vec<String>, String>) {
         match result {
             Ok(components) => {
-                self.component_cache
-                    .insert(type_name.to_string(), ComponentLoadState::Loaded(components));
+                self.component_cache.insert(
+                    type_name.to_string(),
+                    ComponentLoadState::Loaded(components),
+                );
             }
             Err(msg) => {
                 self.component_cache
@@ -289,7 +291,10 @@ mod tests {
             "ApexClass",
             Ok(AppState::build_component_list(
                 "ApexClass",
-                vec!["AccountController".to_string(), "ContactService".to_string()],
+                vec![
+                    "AccountController".to_string(),
+                    "ContactService".to_string(),
+                ],
             )),
         );
         // Load components for Report (folder-based, no wildcard)
@@ -644,19 +649,14 @@ mod tests {
 
     #[test]
     fn build_component_list_with_wildcard() {
-        let list = AppState::build_component_list(
-            "ApexClass",
-            vec!["Foo".to_string(), "Bar".to_string()],
-        );
+        let list =
+            AppState::build_component_list("ApexClass", vec!["Foo".to_string(), "Bar".to_string()]);
         assert_eq!(list, vec!["*", "Foo", "Bar"]);
     }
 
     #[test]
     fn build_component_list_folder_type_no_wildcard() {
-        let list = AppState::build_component_list(
-            "Report",
-            vec!["SalesReport".to_string()],
-        );
+        let list = AppState::build_component_list("Report", vec!["SalesReport".to_string()]);
         assert_eq!(list, vec!["SalesReport"]);
     }
 }

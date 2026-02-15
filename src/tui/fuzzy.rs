@@ -10,7 +10,13 @@ pub fn fuzzy_filter(query: &str, items: &[String]) -> Vec<(usize, u16)> {
         return items.iter().enumerate().map(|(i, _)| (i, 0)).collect();
     }
 
-    let atom = Atom::new(query, CaseMatching::Smart, Normalization::Smart, AtomKind::Fuzzy, false);
+    let atom = Atom::new(
+        query,
+        CaseMatching::Smart,
+        Normalization::Smart,
+        AtomKind::Fuzzy,
+        false,
+    );
     let mut matcher = Matcher::new(Config::DEFAULT);
     let mut buf = Vec::new();
 

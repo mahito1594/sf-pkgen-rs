@@ -18,6 +18,23 @@ use sf_client::SfClient;
 use xml::{PackageXmlInput, generate_package_xml};
 
 pub fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(), AppError> {
+    // 0. Validate non-interactive mode arguments
+    if (args.all || args.types.is_some()) && !args.non_interactive {
+        return Err(AppError::ValidationError {
+            message: "--all and --types require --non-interactive".to_string(),
+        });
+    }
+    if args.non_interactive && !args.all && args.types.is_none() {
+        return Err(AppError::ValidationError {
+            message: "--non-interactive requires --all or --types".to_string(),
+        });
+    }
+    if args.non_interactive && args.output_file.is_none() {
+        return Err(AppError::ValidationError {
+            message: "--non-interactive requires --output-file".to_string(),
+        });
+    }
+
     // 1. Check sf CLI exists
     sf_client.check_sf_exists()?;
     signal::check_interrupted()?;

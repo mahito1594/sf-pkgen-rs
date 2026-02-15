@@ -1,12 +1,16 @@
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
-    #[error("sf CLI not found. Visit https://developer.salesforce.com/tools/salesforcecli to install it.")]
+    #[error(
+        "sf CLI not found. Visit https://developer.salesforce.com/tools/salesforcecli to install it."
+    )]
     SfCliNotFound,
 
     #[error("{message}")]
     SfCliError { message: String },
 
-    #[error("{stderr}\nThere may be an issue with sf CLI or its plugins. Run 'sf plugins --core' and verify that @salesforce/plugin-org is included.")]
+    #[error(
+        "{stderr}\nThere may be an issue with sf CLI or its plugins. Run 'sf plugins --core' and verify that @salesforce/plugin-org is included."
+    )]
     JsonParseError { stderr: String },
 
     #[error("{message}\nPlease specify the API version explicitly with the --api-version option.")]
@@ -23,6 +27,9 @@ pub enum AppError {
 
     #[error("{0}")]
     IoError(#[from] std::io::Error),
+
+    #[error("{message}")]
+    ValidationError { message: String },
 
     #[error("")]
     Cancelled,
@@ -65,6 +72,9 @@ mod tests {
                 message: "path error".to_string(),
             },
             AppError::IoError(std::io::Error::new(std::io::ErrorKind::NotFound, "test")),
+            AppError::ValidationError {
+                message: "invalid".to_string(),
+            },
         ];
         for error in &cases {
             assert_eq!(error.exit_code(), 1, "Failed for: {error:?}");
@@ -119,10 +129,7 @@ mod tests {
     #[test]
     fn display_no_components_selected() {
         let error = AppError::NoComponentsSelected;
-        assert_eq!(
-            error.to_string(),
-            "No metadata components selected."
-        );
+        assert_eq!(error.to_string(), "No metadata components selected.");
     }
 
     #[test]
@@ -130,10 +137,15 @@ mod tests {
         let error = AppError::OutputPathError {
             message: "manifest/package.xml は既に存在します。".to_string(),
         };
-        assert_eq!(
-            error.to_string(),
-            "manifest/package.xml は既に存在します。"
-        );
+        assert_eq!(error.to_string(), "manifest/package.xml は既に存在します。");
+    }
+
+    #[test]
+    fn display_validation_error() {
+        let error = AppError::ValidationError {
+            message: "--all requires --non-interactive".to_string(),
+        };
+        assert_eq!(error.to_string(), "--all requires --non-interactive");
     }
 
     #[test]

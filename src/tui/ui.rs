@@ -1,8 +1,8 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
-use ratatui::Frame;
 
 use super::app::{AppState, ComponentLoadState, FocusPane};
 
@@ -158,8 +158,8 @@ fn draw_help_bar(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect)
 mod tests {
     use super::*;
     use crate::sf_client::MetadataType;
-    use ratatui::backend::TestBackend;
     use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
 
     fn sample_types() -> Vec<MetadataType> {
         vec![
@@ -191,7 +191,10 @@ mod tests {
     fn renders_metadata_types_title() {
         let app = AppState::new(sample_types());
         let output = render_to_string(&app, 80, 10);
-        assert!(output.contains("Metadata Types"), "Should show left pane title");
+        assert!(
+            output.contains("Metadata Types"),
+            "Should show left pane title"
+        );
     }
 
     #[test]
@@ -227,7 +230,10 @@ mod tests {
         app.component_cache
             .insert("ApexClass".to_string(), ComponentLoadState::Loading);
         let output = render_to_string(&app, 80, 10);
-        assert!(output.contains("Loading..."), "Should show loading indicator");
+        assert!(
+            output.contains("Loading..."),
+            "Should show loading indicator"
+        );
     }
 
     #[test]
@@ -326,7 +332,10 @@ mod tests {
         let mut app = AppState::new(sample_types());
         app.start_search();
         let output = render_to_string(&app, 80, 10);
-        assert!(output.contains("filter"), "Search help should show 'filter'");
+        assert!(
+            output.contains("filter"),
+            "Search help should show 'filter'"
+        );
         assert!(
             output.contains("stop search"),
             "Search help should show 'stop search'"

@@ -64,6 +64,9 @@ fn make_args(api_version: Option<&str>, output_file: Option<&str>) -> GenerateAr
         target_org: None,
         api_version: api_version.map(String::from),
         output_file: output_file.map(PathBuf::from),
+        non_interactive: false,
+        all: false,
+        types: None,
     }
 }
 
