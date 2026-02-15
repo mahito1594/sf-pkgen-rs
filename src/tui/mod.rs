@@ -30,6 +30,10 @@ struct PanicHookGuard {
 impl PanicHookGuard {
     fn install() -> Self {
         let original_hook = panic::take_hook();
+        // The original hook is stored in the guard for restoration on normal exit.
+        // During panic, we restore the terminal and print panic info directly rather
+        // than chaining to the original hook, since ownership prevents sharing it
+        // between the closure and the guard.
         panic::set_hook(Box::new(|info| {
             if let Ok(mut panic_tty) = open_tty() {
                 restore_terminal(&mut panic_tty);
@@ -44,7 +48,6 @@ impl PanicHookGuard {
 
 impl Drop for PanicHookGuard {
     fn drop(&mut self) {
-        let _ = panic::take_hook();
         if let Some(hook) = self.original_hook.take() {
             panic::set_hook(hook);
         }
