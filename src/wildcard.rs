@@ -1,5 +1,5 @@
 // Folder-based metadata types that do NOT support wildcard (*) retrieval.
-// Based on: https://github.com/forcedotcom/source-deploy-retrieve/blob/v6.3.1/src/registry/metadataRegistry.json
+// Based on: https://github.com/forcedotcom/source-deploy-retrieve/blob/12.31.11/src/registry/metadataRegistry.json
 // Types with a "folderType" property in metadataRegistry.json are listed here.
 const FOLDER_BASED_TYPES: &[&str] = &["Dashboard", "Document", "EmailTemplate", "Report"];
 
