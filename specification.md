@@ -221,8 +221,8 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 
 | sf CLI の応答 | 判定方法 | sf-pkgen の対応 |
 |--------------|---------|----------------|
-| コマンドが存在しない | `Command::new("sf")` の実行失敗（OS エラー） | `sf CLI が見つかりません。...` と表示して終了 |
-| JSON パース失敗（Unknown command、ANSI 混入、不正 JSON 等） | 正規化後の stdout が有効な JSON でない | stderr の内容を表示 + `sf CLI のプラグインが不足している可能性があります。...` をヒントとして付記して終了 |
+| コマンドが存在しない | `Command::new("sf")` の実行失敗（OS エラー） | `sf CLI not found. ...` と表示して終了 |
+| JSON パース失敗（Unknown command、ANSI 混入、不正 JSON 等） | 正規化後の stdout が有効な JSON でない | stderr の内容を表示 + `There may be an issue with sf CLI or its plugins. ...` をヒントとして付記して終了 |
 | 認証エラー・その他 | JSON の `status` != 0 | `message`（なければ `name` + `stack`）を表示して終了 |
 
 ## 出力仕様
@@ -263,6 +263,7 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 
 | 種別 | 出力先 |
 |------|--------|
+| `--help` / `--version` | stdout（clap のデフォルト動作） |
 | TUI（型選択・コンポーネント選択） | /dev/tty（ratatui + crossterm が管理） |
 | TUI のキー入力 | /dev/tty（ratatui + crossterm が管理） |
 | 進捗メッセージ（「メタデータ型を取得中...」等） | stderr |
@@ -286,18 +287,18 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 
 | 状況 | 対応 |
 |------|------|
-| `sf` コマンドが PATH に存在しない | `sf CLI が見つかりません。https://developer.salesforce.com/tools/salesforcecli を参照してインストールしてください。` → 終了コード 1 |
-| sf コマンドの stdout が JSON としてパースできない | stderr の内容を表示 + `sf CLI またはプラグインに問題がある可能性があります。'sf plugins --core' を実行し、@salesforce/plugin-org が含まれているか確認してください。` → 終了コード 1 |
-| API version の取得失敗（`sf org display` のエラー） | sf CLI のエラーメッセージを表示 + `--api-version オプションで API version を明示的に指定してください。` → 終了コード 1 |
+| `sf` コマンドが PATH に存在しない | `sf CLI not found. Visit https://developer.salesforce.com/tools/salesforcecli to install it.` → 終了コード 1 |
+| sf コマンドの stdout が JSON としてパースできない | stderr の内容を表示 + `There may be an issue with sf CLI or its plugins. Run 'sf plugins --core' and verify that @salesforce/plugin-org is included.` → 終了コード 1 |
+| API version の取得失敗（`sf org display` のエラー） | sf CLI のエラーメッセージを表示 + `Please specify the API version explicitly with the --api-version option.` → 終了コード 1 |
 | org 認証切れ・デフォルト org なし | sf CLI の `message` を stderr に表示 → 終了コード 1 |
 | メタデータ型の取得失敗 | sf CLI の `message` を stderr に表示 → 終了コード 1 |
-| メタデータ型の取得結果が 0 件 | `メタデータ型が取得できませんでした。` → 終了コード 1 |
-| ユーザーが1つもコンポーネントを選択せず確定 | `メタデータコンポーネントが選択されていません。` → 終了コード 1 |
-| 出力先パスが空（プロンプトで未入力） | `出力先ファイルパスを入力してください。` → 終了コード 1 |
-| 出力先パスがディレクトリ | `{path} はディレクトリです。` → 終了コード 1 |
-| 出力先ファイルが既に存在する | `{path} は既に存在します。` → 終了コード 1 |
-| 出力先の親ディレクトリが存在しない | `{parent} ディレクトリが存在しません。` → 終了コード 1 |
-| 出力先ファイルへの書き込み失敗 | stderr に `{path}: {エラー詳細}` を表示 → 終了コード 1 |
+| メタデータ型の取得結果が 0 件 | `No metadata types were found.` → 終了コード 1 |
+| ユーザーが1つもコンポーネントを選択せず確定 | `No metadata components selected.` → 終了コード 1 |
+| 出力先パスが空（プロンプトで未入力） | `Please enter an output file path.` → 終了コード 1 |
+| 出力先パスがディレクトリ | `{path} is a directory.` → 終了コード 1 |
+| 出力先ファイルが既に存在する | `{path} already exists.` → 終了コード 1 |
+| 出力先の親ディレクトリが存在しない | `Directory {parent} does not exist.` → 終了コード 1 |
+| 出力先ファイルへの書き込み失敗 | stderr に `{path}: {error details}` を表示 → 終了コード 1 |
 | Ctrl+C によるキャンセル | 終了コード 130（TUI 中は ratatui/crossterm が検知、コマンド実行中は OS のシグナルハンドリング） |
 
 ## 実装上の注意
