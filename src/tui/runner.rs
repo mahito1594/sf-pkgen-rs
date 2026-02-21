@@ -135,6 +135,7 @@ fn run_event_loop(
             if let Ok(load_result) = rx.try_recv() {
                 apply_load_result(app, load_result);
                 loading_active = false;
+                continue; // Redraw immediately with updated state
             }
 
             // 3. If idle, start background load for current position if needed
