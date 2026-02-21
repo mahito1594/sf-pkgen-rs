@@ -11,13 +11,14 @@ Salesforce 開発用の `package.xml` をインタラクティブに生成する
 ## ビルド・テスト・Lint
 
 ```bash
+cargo fmt                       # フォーマット
 cargo build
 cargo test
 cargo test <test_name>          # 単一テスト実行
 cargo clippy                    # lint
 ```
 
-各変更後に `cargo build && cargo test && cargo clippy` が通ることを確認する。
+各変更後に `cargo fmt && cargo build && cargo test && cargo clippy` が通ることを確認する。
 
 ## 開発ルール
 
