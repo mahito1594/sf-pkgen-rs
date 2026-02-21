@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::panic::{self, PanicHookInfo};
+use std::sync::mpsc;
 use std::time::Duration;
 
 use crossterm::event::{Event, poll as crossterm_poll, read as crossterm_read};
@@ -16,6 +17,11 @@ use crate::sf_client::{MetadataType, SfClient};
 use super::app::{AppState, ComponentLoadState};
 use super::event::{Action, handle_key_event};
 use super::ui::draw;
+
+struct LoadResult {
+    type_name: String,
+    result: Result<Vec<String>, String>,
+}
 
 type PanicHook = Box<dyn Fn(&PanicHookInfo<'_>) + Send + Sync + 'static>;
 
@@ -117,36 +123,63 @@ fn run_event_loop(
     target_org: Option<&str>,
     api_version: &str,
 ) -> Result<BTreeMap<String, Vec<String>>, AppError> {
-    loop {
-        terminal.draw(|f| draw(f, app)).map_err(AppError::IoError)?;
+    std::thread::scope(|scope| {
+        let (tx, rx) = mpsc::channel::<LoadResult>();
+        let mut loading_active = false;
 
-        // Block until the first event arrives
-        let first_event = crossterm_read().map_err(AppError::IoError)?;
+        loop {
+            // 1. Draw
+            terminal.draw(|f| draw(f, app)).map_err(AppError::IoError)?;
 
-        let mut pending_loads: Vec<String> = Vec::new();
-        if let Some(result) = process_event(app, &first_event, &mut pending_loads) {
-            cleanup_stale_loading(app, &pending_loads);
-            return result;
-        }
+            // 2. Check for completed background load
+            if let Ok(load_result) = rx.try_recv() {
+                apply_load_result(app, load_result);
+                loading_active = false;
+            }
 
-        // Drain any queued events without blocking
-        while crossterm_poll(Duration::ZERO).map_err(AppError::IoError)? {
-            let event = crossterm_read().map_err(AppError::IoError)?;
-            if let Some(result) = process_event(app, &event, &mut pending_loads) {
+            // 3. If idle, start background load for current position if needed
+            if !loading_active && let Some(type_name) = app.request_components_if_needed() {
+                spawn_load(scope, &tx, sf_client, type_name, target_org, api_version);
+                loading_active = true;
+            }
+
+            // 4. Event waiting strategy:
+            //    - Loading active: 50ms poll (check channel frequently)
+            //    - Idle: blocking read (no CPU waste)
+            if loading_active
+                && !crossterm_poll(Duration::from_millis(50)).map_err(AppError::IoError)?
+            {
+                continue; // Timeout → back to top (draw + channel check)
+            }
+
+            // 5. Process events (same batching logic as before)
+            let first_event = crossterm_read().map_err(AppError::IoError)?;
+
+            let mut pending_loads: Vec<String> = Vec::new();
+            if let Some(result) = process_event(app, &first_event, &mut pending_loads) {
                 cleanup_stale_loading(app, &pending_loads);
                 return result;
             }
-        }
 
-        // Clean up intermediate Loading entries before loading the final position
-        cleanup_stale_loading(app, &pending_loads);
+            // Drain any queued events without blocking
+            while crossterm_poll(Duration::ZERO).map_err(AppError::IoError)? {
+                let event = crossterm_read().map_err(AppError::IoError)?;
+                if let Some(result) = process_event(app, &event, &mut pending_loads) {
+                    cleanup_stale_loading(app, &pending_loads);
+                    return result;
+                }
+            }
 
-        // Load components only for the final cursor position (if needed)
-        if let Some(type_name) = app.request_components_if_needed() {
-            terminal.draw(|f| draw(f, app)).map_err(AppError::IoError)?;
-            load_components(app, sf_client, &type_name, target_org, api_version);
+            // 6. Clean up stale Loading entries
+            cleanup_stale_loading(app, &pending_loads);
+
+            // 7. Start background load for final cursor position if idle
+            if !loading_active && let Some(type_name) = app.request_components_if_needed() {
+                spawn_load(scope, &tx, sf_client, type_name, target_org, api_version);
+                loading_active = true;
+            }
         }
-    }
+    })
 }
 
 /// Processes a single event and returns `Some(result)` if the TUI should exit.
@@ -181,6 +214,34 @@ fn cleanup_stale_loading(app: &mut AppState, pending_loads: &[String]) {
         if let Some(ComponentLoadState::Loading) = app.component_cache.get(type_name) {
             app.component_cache.remove(type_name);
         }
+    }
+}
+
+fn spawn_load<'scope, 'env>(
+    scope: &'scope std::thread::Scope<'scope, 'env>,
+    tx: &mpsc::Sender<LoadResult>,
+    sf_client: &'env dyn SfClient,
+    type_name: String,
+    target_org: Option<&'env str>,
+    api_version: &'env str,
+) {
+    let tx = tx.clone();
+    scope.spawn(move || {
+        let result = sf_client
+            .list_metadata(&type_name, target_org, api_version)
+            .map(|components| {
+                let names = components.into_iter().map(|c| c.full_name).collect();
+                AppState::build_component_list(&type_name, names)
+            })
+            .map_err(|e| e.to_string());
+        let _ = tx.send(LoadResult { type_name, result });
+    });
+}
+
+fn apply_load_result(app: &mut AppState, load_result: LoadResult) {
+    match load_result.result {
+        Ok(components) => app.set_components(&load_result.type_name, Ok(components)),
+        Err(msg) => app.set_components(&load_result.type_name, Err(msg)),
     }
 }
 

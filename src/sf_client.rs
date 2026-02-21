@@ -128,7 +128,7 @@ fn run_sf_command(args: &[&str]) -> Result<serde_json::Value, AppError> {
 // SfClient trait (public)
 // ---------------------------------------------------------------------------
 
-pub(crate) trait SfClient {
+pub(crate) trait SfClient: Sync {
     fn check_sf_exists(&self) -> Result<(), AppError>;
     fn get_org_info(&self, target_org: Option<&str>) -> Result<OrgInfo, AppError>;
     fn list_metadata_types(
