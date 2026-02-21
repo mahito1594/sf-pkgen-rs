@@ -7,7 +7,7 @@ static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 static INIT: Once = Once::new();
 
 /// Installs the Ctrl+C handler. Safe to call multiple times; only the first call has effect.
-pub fn install_handler_once() {
+pub(crate) fn install_handler_once() {
     INIT.call_once(|| {
         ctrlc::set_handler(|| {
             INTERRUPTED.store(true, Ordering::SeqCst);
@@ -17,7 +17,7 @@ pub fn install_handler_once() {
 }
 
 /// Returns `Err(AppError::Cancelled)` if the interrupt flag is set.
-pub fn check_interrupted() -> Result<(), AppError> {
+pub(crate) fn check_interrupted() -> Result<(), AppError> {
     if INTERRUPTED.load(Ordering::SeqCst) {
         Err(AppError::Cancelled)
     } else {
@@ -27,7 +27,7 @@ pub fn check_interrupted() -> Result<(), AppError> {
 
 /// Returns `true` if the interrupt flag was set, and clears it.
 #[allow(dead_code)]
-pub fn check_and_clear_interrupted() -> bool {
+pub(crate) fn check_and_clear_interrupted() -> bool {
     INTERRUPTED.swap(false, Ordering::SeqCst)
 }
 

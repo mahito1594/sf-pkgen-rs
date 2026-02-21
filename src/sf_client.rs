@@ -10,18 +10,18 @@ use crate::error::AppError;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
-pub struct OrgInfo {
-    pub api_version: String,
+pub(crate) struct OrgInfo {
+    pub(crate) api_version: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct MetadataType {
-    pub xml_name: String,
+pub(crate) struct MetadataType {
+    pub(crate) xml_name: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct MetadataComponent {
-    pub full_name: String,
+pub(crate) struct MetadataComponent {
+    pub(crate) full_name: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ fn run_sf_command(args: &[&str]) -> Result<serde_json::Value, AppError> {
 // SfClient trait (public)
 // ---------------------------------------------------------------------------
 
-pub trait SfClient {
+pub(crate) trait SfClient {
     fn check_sf_exists(&self) -> Result<(), AppError>;
     fn get_org_info(&self, target_org: Option<&str>) -> Result<OrgInfo, AppError>;
     fn list_metadata_types(
@@ -148,7 +148,7 @@ pub trait SfClient {
 // RealSfClient implementation
 // ---------------------------------------------------------------------------
 
-pub struct RealSfClient;
+pub(crate) struct RealSfClient;
 
 impl SfClient for RealSfClient {
     fn check_sf_exists(&self) -> Result<(), AppError> {

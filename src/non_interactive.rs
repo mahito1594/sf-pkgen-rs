@@ -10,7 +10,7 @@ use crate::wildcard::supports_wildcard;
 /// against the available metadata types, and builds a selection map:
 /// - Wildcard-supported types get `["*"]`
 /// - Folder-based types get their full component list via `sf_client.list_metadata()`
-pub fn resolve(
+pub(crate) fn resolve(
     sf_client: &dyn SfClient,
     metadata_types: &[MetadataType],
     all: bool,

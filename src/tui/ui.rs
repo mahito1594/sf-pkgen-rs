@@ -6,7 +6,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 
 use super::app::{AppState, ComponentLoadState, FocusPane};
 
-pub fn draw(frame: &mut Frame, app: &AppState) {
+pub(crate) fn draw(frame: &mut Frame, app: &AppState) {
     let [main_area, help_area] =
         Layout::vertical([Constraint::Min(1), Constraint::Length(1)]).areas(frame.area());
 

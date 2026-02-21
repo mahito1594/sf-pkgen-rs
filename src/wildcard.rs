@@ -6,7 +6,7 @@ const FOLDER_BASED_TYPES: &[&str] = &["Dashboard", "Document", "EmailTemplate", 
 /// Returns `true` if the metadata type supports wildcard (`*`) member selection.
 ///
 /// Types not in the folder-based list are assumed to support wildcard by default.
-pub fn supports_wildcard(xml_name: &str) -> bool {
+pub(crate) fn supports_wildcard(xml_name: &str) -> bool {
     !FOLDER_BASED_TYPES.contains(&xml_name)
 }
 

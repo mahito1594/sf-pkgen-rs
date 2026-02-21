@@ -4,42 +4,42 @@ use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
 #[command(version, about = "Salesforce package.xml generator")]
-pub struct Cli {
+pub(crate) struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub(crate) command: Commands,
 }
 
 #[derive(Debug, Subcommand)]
-pub enum Commands {
+pub(crate) enum Commands {
     /// Generate a package.xml interactively
     Generate(GenerateArgs),
 }
 
 #[derive(Debug, clap::Args)]
-pub struct GenerateArgs {
+pub(crate) struct GenerateArgs {
     /// Target org alias or username
     #[arg(short = 'o', long = "target-org")]
-    pub target_org: Option<String>,
+    pub(crate) target_org: Option<String>,
 
     /// API version (e.g. "62.0")
     #[arg(short = 'a', long = "api-version")]
-    pub api_version: Option<String>,
+    pub(crate) api_version: Option<String>,
 
     /// Output file path
     #[arg(short = 'f', long = "output-file")]
-    pub output_file: Option<PathBuf>,
+    pub(crate) output_file: Option<PathBuf>,
 
     /// Run in non-interactive mode (requires --all or --types)
     #[arg(long = "non-interactive")]
-    pub non_interactive: bool,
+    pub(crate) non_interactive: bool,
 
     /// Include all metadata types and components (non-interactive only)
     #[arg(long, conflicts_with = "types")]
-    pub all: bool,
+    pub(crate) all: bool,
 
     /// Comma-separated list of metadata types (non-interactive only)
     #[arg(long, value_delimiter = ',')]
-    pub types: Option<Vec<String>>,
+    pub(crate) types: Option<Vec<String>>,
 }
 
 #[cfg(test)]

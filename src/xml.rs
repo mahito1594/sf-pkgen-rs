@@ -3,10 +3,10 @@ use std::collections::BTreeMap;
 use quick_xml::Writer;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 
-pub struct PackageXmlInput {
+pub(crate) struct PackageXmlInput {
     /// Map of metadata type name to selected members (sorted by BTreeMap key order).
-    pub types: BTreeMap<String, Vec<String>>,
-    pub api_version: String,
+    pub(crate) types: BTreeMap<String, Vec<String>>,
+    pub(crate) api_version: String,
 }
 
 /// Generates a `package.xml` string from the given input.
@@ -17,7 +17,7 @@ pub struct PackageXmlInput {
 /// - Within `<types>`: `<members>` first, then `<name>`
 /// - `<members>` sorted alphabetically; `*` always comes first
 /// - Indent: 4 spaces, newline: LF, trailing newline present
-pub fn generate_package_xml(input: &PackageXmlInput) -> String {
+pub(crate) fn generate_package_xml(input: &PackageXmlInput) -> String {
     let mut buf: Vec<u8> = Vec::new();
     let mut writer = Writer::new_with_indent(&mut buf, b' ', 4);
 

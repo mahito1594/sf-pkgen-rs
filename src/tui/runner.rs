@@ -1,8 +1,3 @@
-pub mod app;
-pub mod event;
-pub mod fuzzy;
-pub mod ui;
-
 use std::collections::BTreeMap;
 use std::panic::{self, PanicHookInfo};
 use std::time::Duration;
@@ -18,9 +13,9 @@ use ratatui::backend::CrosstermBackend;
 use crate::error::AppError;
 use crate::sf_client::{MetadataType, SfClient};
 
-use self::app::{AppState, ComponentLoadState};
-use self::event::{Action, handle_key_event};
-use self::ui::draw;
+use super::app::{AppState, ComponentLoadState};
+use super::event::{Action, handle_key_event};
+use super::ui::draw;
 
 type PanicHook = Box<dyn Fn(&PanicHookInfo<'_>) + Send + Sync + 'static>;
 
@@ -68,7 +63,7 @@ fn restore_terminal(tty: &mut std::fs::File) {
     let _ = execute!(tty, LeaveAlternateScreen);
 }
 
-pub fn run_tui(
+pub(crate) fn run_tui(
     metadata_types: Vec<MetadataType>,
     sf_client: &dyn SfClient,
     target_org: Option<&str>,
@@ -211,6 +206,7 @@ fn load_components(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tui::app::FocusPane;
     use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
 
     fn sample_types() -> Vec<MetadataType> {
@@ -317,7 +313,7 @@ mod tests {
                 vec!["Foo".to_string()],
             )),
         );
-        app.focus = app::FocusPane::Right;
+        app.focus = FocusPane::Right;
         app.right_cursor = 0; // "*"
         app.toggle_selection();
 

@@ -1,5 +1,5 @@
 #[derive(Debug, thiserror::Error)]
-pub enum AppError {
+pub(crate) enum AppError {
     #[error(
         "sf CLI not found. Visit https://developer.salesforce.com/tools/salesforcecli to install it."
     )]
@@ -36,7 +36,7 @@ pub enum AppError {
 }
 
 impl AppError {
-    pub fn exit_code(&self) -> i32 {
+    pub(crate) fn exit_code(&self) -> i32 {
         match self {
             AppError::Cancelled => 130,
             _ => 1,

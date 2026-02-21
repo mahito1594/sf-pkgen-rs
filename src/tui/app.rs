@@ -9,13 +9,13 @@ use crate::wildcard::supports_wildcard;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FocusPane {
+pub(crate) enum FocusPane {
     Left,
     Right,
 }
 
 #[derive(Debug, Clone)]
-pub enum ComponentLoadState {
+pub(crate) enum ComponentLoadState {
     Loading,
     Loaded(Vec<String>),
     Error(String),
@@ -25,27 +25,27 @@ pub enum ComponentLoadState {
 // AppState
 // ---------------------------------------------------------------------------
 
-pub struct AppState {
+pub(crate) struct AppState {
     // Left pane
-    pub metadata_types: Vec<MetadataType>,
-    pub filtered_indices: Vec<usize>,
-    pub left_cursor: usize,
-    pub search_query: String,
-    pub is_searching: bool,
+    pub(crate) metadata_types: Vec<MetadataType>,
+    pub(crate) filtered_indices: Vec<usize>,
+    pub(crate) left_cursor: usize,
+    pub(crate) search_query: String,
+    pub(crate) is_searching: bool,
 
     // Right pane
-    pub component_cache: HashMap<String, ComponentLoadState>,
-    pub right_cursor: usize,
-    pub selections: HashMap<String, HashSet<String>>,
+    pub(crate) component_cache: HashMap<String, ComponentLoadState>,
+    pub(crate) right_cursor: usize,
+    pub(crate) selections: HashMap<String, HashSet<String>>,
 
     // Common
-    pub focus: FocusPane,
-    pub should_quit: bool,
-    pub cancelled: bool,
+    pub(crate) focus: FocusPane,
+    pub(crate) should_quit: bool,
+    pub(crate) cancelled: bool,
 }
 
 impl AppState {
-    pub fn new(metadata_types: Vec<MetadataType>) -> Self {
+    pub(crate) fn new(metadata_types: Vec<MetadataType>) -> Self {
         let filtered_indices: Vec<usize> = (0..metadata_types.len()).collect();
         Self {
             metadata_types,
@@ -63,7 +63,7 @@ impl AppState {
     }
 
     /// Returns the metadata type at the current left cursor position.
-    pub fn highlighted_type(&self) -> Option<&MetadataType> {
+    pub(crate) fn highlighted_type(&self) -> Option<&MetadataType> {
         self.filtered_indices
             .get(self.left_cursor)
             .map(|&i| &self.metadata_types[i])
@@ -80,7 +80,7 @@ impl AppState {
 
     // -- Cursor movement --
 
-    pub fn move_cursor_up(&mut self) {
+    pub(crate) fn move_cursor_up(&mut self) {
         match self.focus {
             FocusPane::Left => {
                 if !self.filtered_indices.is_empty() {
@@ -106,7 +106,7 @@ impl AppState {
         }
     }
 
-    pub fn move_cursor_down(&mut self) {
+    pub(crate) fn move_cursor_down(&mut self) {
         match self.focus {
             FocusPane::Left => {
                 if !self.filtered_indices.is_empty() {
@@ -126,7 +126,7 @@ impl AppState {
 
     // -- Focus --
 
-    pub fn switch_focus(&mut self) {
+    pub(crate) fn switch_focus(&mut self) {
         self.focus = match self.focus {
             FocusPane::Left => FocusPane::Right,
             FocusPane::Right => FocusPane::Left,
@@ -138,7 +138,7 @@ impl AppState {
     /// Toggles the selection of the component at the current right cursor position.
     /// Implements wildcard exclusion: selecting `*` clears individual selections,
     /// and selecting an individual component clears `*`.
-    pub fn toggle_selection(&mut self) {
+    pub(crate) fn toggle_selection(&mut self) {
         let type_name = match self.highlighted_type() {
             Some(t) => t.xml_name.clone(),
             None => return,
@@ -170,27 +170,27 @@ impl AppState {
 
     // -- Search --
 
-    pub fn start_search(&mut self) {
+    pub(crate) fn start_search(&mut self) {
         self.is_searching = true;
         self.search_query.clear();
         self.apply_fuzzy_filter();
     }
 
-    pub fn update_search(&mut self, ch: char) {
+    pub(crate) fn update_search(&mut self, ch: char) {
         self.search_query.push(ch);
         self.apply_fuzzy_filter();
     }
 
-    pub fn backspace_search(&mut self) {
+    pub(crate) fn backspace_search(&mut self) {
         self.search_query.pop();
         self.apply_fuzzy_filter();
     }
 
-    pub fn end_search(&mut self) {
+    pub(crate) fn end_search(&mut self) {
         self.is_searching = false;
     }
 
-    pub fn apply_fuzzy_filter(&mut self) {
+    pub(crate) fn apply_fuzzy_filter(&mut self) {
         let type_names: Vec<String> = self
             .metadata_types
             .iter()
@@ -206,7 +206,7 @@ impl AppState {
     // -- Confirm / Cancel --
 
     /// Returns the selection result if at least one component is selected.
-    pub fn confirm(&self) -> Option<BTreeMap<String, Vec<String>>> {
+    pub(crate) fn confirm(&self) -> Option<BTreeMap<String, Vec<String>>> {
         let mut result = BTreeMap::new();
         for (type_name, members) in &self.selections {
             if !members.is_empty() {
@@ -222,7 +222,7 @@ impl AppState {
         }
     }
 
-    pub fn cancel(&mut self) {
+    pub(crate) fn cancel(&mut self) {
         self.should_quit = true;
         self.cancelled = true;
     }
@@ -230,7 +230,7 @@ impl AppState {
     // -- Component loading --
 
     /// Sets the component load result for a metadata type.
-    pub fn set_components(&mut self, type_name: &str, result: Result<Vec<String>, String>) {
+    pub(crate) fn set_components(&mut self, type_name: &str, result: Result<Vec<String>, String>) {
         match result {
             Ok(components) => {
                 self.component_cache.insert(
@@ -247,7 +247,7 @@ impl AppState {
 
     /// Checks if components need to be loaded for the highlighted type.
     /// If so, sets state to Loading and returns the type name.
-    pub fn request_components_if_needed(&mut self) -> Option<String> {
+    pub(crate) fn request_components_if_needed(&mut self) -> Option<String> {
         let type_name = self.highlighted_type()?.xml_name.clone();
         if self.component_cache.contains_key(&type_name) {
             return None;
@@ -258,7 +258,10 @@ impl AppState {
     }
 
     /// Builds the component list for a type, prepending `*` if wildcard is supported.
-    pub fn build_component_list(type_name: &str, mut components: Vec<String>) -> Vec<String> {
+    pub(crate) fn build_component_list(
+        type_name: &str,
+        mut components: Vec<String>,
+    ) -> Vec<String> {
         if supports_wildcard(type_name) {
             components.insert(0, "*".to_string());
         }

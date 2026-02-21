@@ -10,7 +10,7 @@ use crate::error::AppError;
 /// 1. Path is not a directory
 /// 2. File does not already exist
 /// 3. Parent directory exists (relative paths without parent use `.`)
-pub fn validate_output_path(path: &Path) -> Result<(), AppError> {
+pub(crate) fn validate_output_path(path: &Path) -> Result<(), AppError> {
     if path.is_dir() {
         return Err(AppError::OutputPathError {
             message: format!("{} is a directory.", path.display()),
@@ -41,7 +41,7 @@ pub fn validate_output_path(path: &Path) -> Result<(), AppError> {
 /// Uses `create_new(true)` to atomically create the file, preventing TOCTOU
 /// race conditions where another process creates the file between validation
 /// and writing.
-pub fn write_output(path: &Path, content: &str) -> Result<(), AppError> {
+pub(crate) fn write_output(path: &Path, content: &str) -> Result<(), AppError> {
     use std::io::Write;
     let mut file = fs::OpenOptions::new()
         .write(true)
@@ -57,7 +57,7 @@ pub fn write_output(path: &Path, content: &str) -> Result<(), AppError> {
 }
 
 /// Prompts the user for an output file path via stderr/stdin.
-pub fn prompt_output_path() -> Result<PathBuf, AppError> {
+pub(crate) fn prompt_output_path() -> Result<PathBuf, AppError> {
     eprint!("Output file path: ");
     io::stderr().flush()?;
 

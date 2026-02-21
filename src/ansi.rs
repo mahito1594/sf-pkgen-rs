@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 use regex::Regex;
 
-pub fn strip_ansi_escapes(input: &str) -> String {
+pub(crate) fn strip_ansi_escapes(input: &str) -> String {
     static RE: OnceLock<Regex> = OnceLock::new();
     let re = RE.get_or_init(|| Regex::new(r"\x1b\[[\x20-\x3f]*[\x40-\x7e]").unwrap());
     re.replace_all(input, "").into_owned()

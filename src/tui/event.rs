@@ -5,7 +5,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use super::app::{AppState, FocusPane};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Action {
+pub(crate) enum Action {
     None,
     LoadComponents(String),
     Confirm(BTreeMap<String, Vec<String>>),
@@ -13,7 +13,7 @@ pub enum Action {
     Cancel,
 }
 
-pub fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
+pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
     // Ctrl+C always cancels
     if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
         app.cancel();

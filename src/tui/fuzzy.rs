@@ -5,7 +5,7 @@ use nucleo_matcher::{Config, Matcher, Utf32Str};
 ///
 /// Results are sorted by score descending (best match first).
 /// If `query` is empty, returns all items with score 0.
-pub fn fuzzy_filter(query: &str, items: &[String]) -> Vec<(usize, u16)> {
+pub(crate) fn fuzzy_filter(query: &str, items: &[String]) -> Vec<(usize, u16)> {
     if query.is_empty() {
         return items.iter().enumerate().map(|(i, _)| (i, 0)).collect();
     }
