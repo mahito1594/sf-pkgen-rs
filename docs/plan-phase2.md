@@ -26,7 +26,7 @@ Phase 2 は以下を目的とする。
 
 ### Out of Scope
 
-1. 非同期 TUI コンポーネント取得
+1. ~~非同期 TUI コンポーネント取得~~ → Phase 2 完了後に別途実装済み（`std::thread::scope` + `mpsc::channel`）
 2. 非対話モード Phase 2（`--select`）
 3. 新サブコマンド追加（`validate`, `diff` など）
 
@@ -606,7 +606,7 @@ let selections = if args.non_interactive {
 
 1. `--types` は case-sensitive（現仕様維持）
 2. 非対話では対話入力を一切行わない（`--output-file` 必須）
-3. 非同期 TUI は今回は実施しない（影響範囲が大きいため）
+3. ~~非同期 TUI は今回は実施しない（影響範囲が大きいため）~~ → Phase 2 完了後に実装済み
 4. `--select` は次フェーズに延期
 5. Ctrl+C 判定は「ctrlc クレート + 子プロセス終了状態」で防御的に扱う
 6. `--all` モードで `list_metadata` が一部の型で失敗した場合は即座にエラー終了（CI 予測可能性優先）

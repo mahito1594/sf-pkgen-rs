@@ -43,7 +43,7 @@ cargo clippy                    # lint
 
 ### sf CLI 連携 (`sf_client.rs`)
 
-`SfClient` trait で sf CLI との連携を抽象化。`RealSfClient` が実装を持ち、テストではモック実装に差し替え可能。sf CLI の `--json` 出力は ANSI エスケープが混入しうるため、`ansi.rs` で除去してから JSON パースする。`run_sf_command` は子プロセスの SIGINT 終了と `INTERRUPTED` フラグの両方を検出する。
+`SfClient` trait（`Sync` バウンド付き）で sf CLI との連携を抽象化。`RealSfClient` が実装を持ち、テストではモック実装に差し替え可能。`Sync` バウンドは `runner.rs` のバックグラウンドスレッドに `&dyn SfClient` を渡すために必要。sf CLI の `--json` 出力は ANSI エスケープが混入しうるため、`ansi.rs` で除去してから JSON パースする。`run_sf_command` は子プロセスの SIGINT 終了と `INTERRUPTED` フラグの両方を検出する。
 
 ### TUI (`tui.rs` + `tui/`)
 
@@ -53,7 +53,7 @@ cargo clippy                    # lint
 - `ui.rs`: `draw()`（`AppState` を受け取り描画するだけ、状態変更なし）
 - `event.rs`: `handle_key_event()` → 副作用なしの `Action` enum を返す。`runner.rs` のイベントループが `Action` を解釈して副作用を実行
 - `fuzzy.rs`: `nucleo-matcher` による fuzzy search ラッパー
-- `runner.rs`: ターミナル setup/teardown、`PanicHookGuard`（RAII）でパニック時のターミナル復元を保証、イベントループ、コンポーネントロード
+- `runner.rs`: ターミナル setup/teardown、`PanicHookGuard`（RAII）でパニック時のターミナル復元を保証、イベントループ、コンポーネントロード。コンポーネントロードは `std::thread::scope` + `mpsc::channel` でバックグラウンドスレッド化されており、sf CLI 呼び出し中もキー入力を受け付ける（同時実行は最大 1 スレッド、`loading_active` フラグで制御）
 
 ワイルドカード（`*`）と個別コンポーネントの選択は排他的。`wildcard.rs` のハードコードリストでフォルダベース型（wildcard 非対応）を判定する。
 
