@@ -43,11 +43,11 @@ pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
             app.move_cursor_down();
             maybe_load_components(app)
         }
-        KeyCode::Char('h') => {
+        KeyCode::Left | KeyCode::Char('h') => {
             app.focus_left();
             maybe_load_components(app)
         }
-        KeyCode::Char('l') => {
+        KeyCode::Right | KeyCode::Char('l') => {
             app.focus_right();
             maybe_load_components(app)
         }
@@ -227,12 +227,30 @@ mod tests {
     }
 
     #[test]
+    fn left_arrow_focuses_left_pane() {
+        let mut app = app_with_components();
+        app.focus = FocusPane::Right;
+        let action = handle_key_event(&mut app, key(KeyCode::Left));
+        assert_eq!(app.focus, FocusPane::Left);
+        assert_eq!(action, Action::None);
+    }
+
+    #[test]
     fn l_focuses_right_pane() {
         let mut app = app_with_components();
         assert_eq!(app.focus, FocusPane::Left);
         let action = handle_key_event(&mut app, key(KeyCode::Char('l')));
         assert_eq!(app.focus, FocusPane::Right);
         // ApexClass already cached, no load needed
+        assert_eq!(action, Action::None);
+    }
+
+    #[test]
+    fn right_arrow_focuses_right_pane() {
+        let mut app = app_with_components();
+        assert_eq!(app.focus, FocusPane::Left);
+        let action = handle_key_event(&mut app, key(KeyCode::Right));
+        assert_eq!(app.focus, FocusPane::Right);
         assert_eq!(action, Action::None);
     }
 

@@ -137,7 +137,7 @@ fn draw_help_bar(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect)
         ])
     } else {
         Line::from(vec![
-            Span::styled("Tab/h/l", Style::default().add_modifier(Modifier::BOLD)),
+            Span::styled("Tab", Style::default().add_modifier(Modifier::BOLD)),
             Span::raw(": pane  "),
             Span::styled("j/k", Style::default().add_modifier(Modifier::BOLD)),
             Span::raw(": move  "),
@@ -296,7 +296,7 @@ mod tests {
     fn renders_help_bar() {
         let app = AppState::new(sample_types());
         let output = render_to_string(&app, 80, 10);
-        assert!(output.contains("Tab/h/l"), "Help bar should show Tab/h/l");
+        assert!(output.contains("Tab"), "Help bar should show Tab");
         assert!(output.contains("j/k"), "Help bar should show j/k");
         assert!(output.contains("Space"), "Help bar should show Space");
         assert!(output.contains("Enter"), "Help bar should show Enter");
