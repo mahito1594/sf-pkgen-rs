@@ -174,10 +174,16 @@ fn run_event_loop(
             // 6. Clean up stale Loading entries
             cleanup_stale_loading(app, &pending_loads);
 
-            // 7. Start background load for final cursor position if idle
+            // 7. Start background load for final cursor position, or
+            //    ensure current type shows "Loading..." while another load runs
             if !loading_active && let Some(type_name) = app.request_components_if_needed() {
                 spawn_load(scope, &tx, sf_client, type_name, target_org, api_version);
                 loading_active = true;
+            } else if loading_active && let Some(ht) = app.highlighted_type() {
+                let name = ht.xml_name.clone();
+                app.component_cache
+                    .entry(name)
+                    .or_insert(ComponentLoadState::Loading);
             }
         }
     })
@@ -328,6 +334,24 @@ mod tests {
         assert!(matches!(
             app.component_cache.get("CustomObject"),
             Some(ComponentLoadState::Error(_))
+        ));
+    }
+
+    #[test]
+    fn cleanup_then_request_re_fetches_loading_type() {
+        let mut app = AppState::new(sample_types());
+        // Insert a Loading entry, then clean it up
+        app.component_cache
+            .insert("ApexClass".to_string(), ComponentLoadState::Loading);
+        cleanup_stale_loading(&mut app, &["ApexClass".to_string()]);
+        assert!(!app.component_cache.contains_key("ApexClass"));
+
+        // request_components_if_needed should now return Some for the cleaned type
+        let result = app.request_components_if_needed();
+        assert_eq!(result, Some("ApexClass".to_string()));
+        assert!(matches!(
+            app.component_cache.get("ApexClass"),
+            Some(ComponentLoadState::Loading)
         ));
     }
 

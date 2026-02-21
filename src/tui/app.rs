@@ -247,14 +247,19 @@ impl AppState {
 
     /// Checks if components need to be loaded for the highlighted type.
     /// If so, sets state to Loading and returns the type name.
+    /// Returns `Some` when cache is empty or contains a stale `Loading` placeholder
+    /// (inserted for UI display but not backed by an actual background load).
     pub(crate) fn request_components_if_needed(&mut self) -> Option<String> {
         let type_name = self.highlighted_type()?.xml_name.clone();
-        if self.component_cache.contains_key(&type_name) {
-            return None;
+        match self.component_cache.get(&type_name) {
+            Some(ComponentLoadState::Loaded(_) | ComponentLoadState::Error(_)) => None,
+            _ => {
+                // None or Loading (stale placeholder) — request load
+                self.component_cache
+                    .insert(type_name.clone(), ComponentLoadState::Loading);
+                Some(type_name)
+            }
         }
-        self.component_cache
-            .insert(type_name.clone(), ComponentLoadState::Loading);
-        Some(type_name)
     }
 
     /// Builds the component list for a type, prepending `*` if wildcard is supported.
@@ -644,6 +649,24 @@ mod tests {
     #[test]
     fn request_components_if_needed_already_cached() {
         let mut app = app_with_loaded_components();
+        let result = app.request_components_if_needed();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn request_components_if_needed_re_requests_loading_state() {
+        let mut app = AppState::new(sample_types());
+        // Simulate a stale Loading placeholder (inserted for UI but not backed by a real load)
+        app.component_cache
+            .insert("ApexClass".to_string(), ComponentLoadState::Loading);
+        let result = app.request_components_if_needed();
+        assert_eq!(result, Some("ApexClass".to_string()));
+    }
+
+    #[test]
+    fn request_components_if_needed_skips_error_state() {
+        let mut app = AppState::new(sample_types());
+        app.set_components("ApexClass", Err("fail".to_string()));
         let result = app.request_components_if_needed();
         assert!(result.is_none());
     }
