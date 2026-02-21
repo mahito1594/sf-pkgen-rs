@@ -133,6 +133,14 @@ impl AppState {
         };
     }
 
+    pub(crate) fn focus_left(&mut self) {
+        self.focus = FocusPane::Left;
+    }
+
+    pub(crate) fn focus_right(&mut self) {
+        self.focus = FocusPane::Right;
+    }
+
     // -- Selection --
 
     /// Toggles the selection of the component at the current right cursor position.
@@ -433,6 +441,37 @@ mod tests {
         assert_eq!(app.focus, FocusPane::Right);
         app.switch_focus();
         assert_eq!(app.focus, FocusPane::Left);
+    }
+
+    #[test]
+    fn focus_left_sets_left() {
+        let mut app = AppState::new(sample_types());
+        app.focus = FocusPane::Right;
+        app.focus_left();
+        assert_eq!(app.focus, FocusPane::Left);
+    }
+
+    #[test]
+    fn focus_left_noop_when_already_left() {
+        let mut app = AppState::new(sample_types());
+        assert_eq!(app.focus, FocusPane::Left);
+        app.focus_left();
+        assert_eq!(app.focus, FocusPane::Left);
+    }
+
+    #[test]
+    fn focus_right_sets_right() {
+        let mut app = AppState::new(sample_types());
+        app.focus_right();
+        assert_eq!(app.focus, FocusPane::Right);
+    }
+
+    #[test]
+    fn focus_right_noop_when_already_right() {
+        let mut app = AppState::new(sample_types());
+        app.focus = FocusPane::Right;
+        app.focus_right();
+        assert_eq!(app.focus, FocusPane::Right);
     }
 
     // -- selection --

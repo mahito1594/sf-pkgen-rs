@@ -35,12 +35,20 @@ pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
             app.switch_focus();
             maybe_load_components(app)
         }
-        KeyCode::Up => {
+        KeyCode::Up | KeyCode::Char('k') => {
             app.move_cursor_up();
             maybe_load_components(app)
         }
-        KeyCode::Down => {
+        KeyCode::Down | KeyCode::Char('j') => {
             app.move_cursor_down();
+            maybe_load_components(app)
+        }
+        KeyCode::Char('h') => {
+            app.focus_left();
+            maybe_load_components(app)
+        }
+        KeyCode::Char('l') => {
+            app.focus_right();
             maybe_load_components(app)
         }
         KeyCode::Char('/') if app.focus == FocusPane::Left => {
@@ -169,6 +177,63 @@ mod tests {
         assert_eq!(app.left_cursor, 0);
         // ApexClass not cached, should request load
         assert_eq!(action, Action::LoadComponents("ApexClass".to_string()));
+    }
+
+    #[test]
+    fn j_moves_cursor_down() {
+        let mut app = AppState::new(sample_types());
+        let action = handle_key_event(&mut app, key(KeyCode::Char('j')));
+        assert_eq!(app.left_cursor, 1);
+        assert_eq!(action, Action::LoadComponents("CustomObject".to_string()));
+    }
+
+    #[test]
+    fn j_moves_cursor_down_in_right_pane() {
+        let mut app = app_with_components();
+        app.focus = FocusPane::Right;
+        let action = handle_key_event(&mut app, key(KeyCode::Char('j')));
+        assert_eq!(app.right_cursor, 1);
+        assert_eq!(action, Action::None);
+    }
+
+    #[test]
+    fn k_moves_cursor_up() {
+        let mut app = AppState::new(sample_types());
+        app.left_cursor = 1;
+        app.set_components("CustomObject", Ok(vec![]));
+        let action = handle_key_event(&mut app, key(KeyCode::Char('k')));
+        assert_eq!(app.left_cursor, 0);
+        assert_eq!(action, Action::LoadComponents("ApexClass".to_string()));
+    }
+
+    #[test]
+    fn k_moves_cursor_up_in_right_pane() {
+        let mut app = app_with_components();
+        app.focus = FocusPane::Right;
+        // ApexClass has: ["*", "Foo"] = 2 items; cursor wraps to last
+        let action = handle_key_event(&mut app, key(KeyCode::Char('k')));
+        assert_eq!(app.right_cursor, 1);
+        assert_eq!(action, Action::None);
+    }
+
+    #[test]
+    fn h_focuses_left_pane() {
+        let mut app = app_with_components();
+        app.focus = FocusPane::Right;
+        let action = handle_key_event(&mut app, key(KeyCode::Char('h')));
+        assert_eq!(app.focus, FocusPane::Left);
+        // ApexClass already cached, no load needed
+        assert_eq!(action, Action::None);
+    }
+
+    #[test]
+    fn l_focuses_right_pane() {
+        let mut app = app_with_components();
+        assert_eq!(app.focus, FocusPane::Left);
+        let action = handle_key_event(&mut app, key(KeyCode::Char('l')));
+        assert_eq!(app.focus, FocusPane::Right);
+        // ApexClass already cached, no load needed
+        assert_eq!(action, Action::None);
     }
 
     // -- Tab --
