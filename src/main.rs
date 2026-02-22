@@ -3,7 +3,6 @@ mod error;
 mod sf_client;
 
 mod ansi;
-mod non_interactive;
 mod output;
 mod signal;
 mod tui;
@@ -18,23 +17,6 @@ use sf_client::{RealSfClient, SfClient};
 use xml::{PackageXmlInput, generate_package_xml};
 
 fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(), AppError> {
-    // 0. Validate non-interactive mode arguments
-    if (args.all || args.types.is_some()) && !args.non_interactive {
-        return Err(AppError::ValidationError {
-            message: "--all and --types require --non-interactive.".to_string(),
-        });
-    }
-    if args.non_interactive && !args.all && args.types.is_none() {
-        return Err(AppError::ValidationError {
-            message: "In non-interactive mode, specify --all or --types.".to_string(),
-        });
-    }
-    if args.non_interactive && args.output_file.is_none() {
-        return Err(AppError::ValidationError {
-            message: "In non-interactive mode, --output-file is required.".to_string(),
-        });
-    }
-
     // 1. Check sf CLI exists
     sf_client.check_sf_exists()?;
     signal::check_interrupted()?;
@@ -65,23 +47,12 @@ fn run_generate(sf_client: &dyn SfClient, args: &GenerateArgs) -> Result<(), App
     metadata_types.sort_by(|a, b| a.xml_name.cmp(&b.xml_name));
 
     // 4. Select metadata types and components
-    let selections = if args.non_interactive {
-        non_interactive::resolve(
-            sf_client,
-            &metadata_types,
-            args.all,
-            args.types.as_deref(),
-            args.target_org.as_deref(),
-            &api_version,
-        )?
-    } else {
-        tui::run_tui(
-            metadata_types,
-            sf_client,
-            args.target_org.as_deref(),
-            &api_version,
-        )?
-    };
+    let selections = tui::run_tui(
+        metadata_types,
+        sf_client,
+        args.target_org.as_deref(),
+        &api_version,
+    )?;
 
     // 5. Determine output path
     let output_path = match &args.output_file {
@@ -201,9 +172,6 @@ mod tests {
             target_org: None,
             api_version: api_version.map(String::from),
             output_file: output_file.map(PathBuf::from),
-            non_interactive: false,
-            all: false,
-            types: None,
         }
     }
 
@@ -282,150 +250,5 @@ mod tests {
         let args = make_args(Some("62.0"), Some("out.xml"));
         let err = crate::run_generate(&client, &args).unwrap_err();
         assert!(matches!(err, AppError::NoMetadataTypes));
-    }
-
-    // ---------------------------------------------------------------------------
-    // Non-interactive mode integration tests
-    // ---------------------------------------------------------------------------
-
-    fn sample_metadata_types() -> Vec<MetadataType> {
-        vec![
-            MetadataType {
-                xml_name: "ApexClass".to_string(),
-            },
-            MetadataType {
-                xml_name: "Report".to_string(),
-            },
-            MetadataType {
-                xml_name: "CustomObject".to_string(),
-            },
-        ]
-    }
-
-    fn make_non_interactive_client() -> MockSfClient {
-        let mut components = HashMap::new();
-        components.insert(
-            "Report".to_string(),
-            vec![MetadataComponent {
-                full_name: "SalesReport".to_string(),
-            }],
-        );
-        MockSfClient {
-            check_sf_ok: true,
-            api_version: Some("62.0".to_string()),
-            metadata_types: Some(sample_metadata_types()),
-            components: Some(components),
-        }
-    }
-
-    #[test]
-    fn non_interactive_all_generates_xml() {
-        let dir = tempfile::tempdir().unwrap();
-        let output_path = dir.path().join("package.xml");
-        let client = make_non_interactive_client();
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: Some(output_path.clone()),
-            non_interactive: true,
-            all: true,
-            types: None,
-        };
-        crate::run_generate(&client, &args).unwrap();
-        let content = std::fs::read_to_string(&output_path).unwrap();
-        assert!(content.contains("<Package xmlns="));
-        assert!(content.contains("<name>ApexClass</name>"));
-        assert!(content.contains("<members>*</members>"));
-        // Report is folder-based, should have SalesReport
-        assert!(content.contains("<name>Report</name>"));
-        assert!(content.contains("<members>SalesReport</members>"));
-    }
-
-    #[test]
-    fn non_interactive_types_generates_xml() {
-        let dir = tempfile::tempdir().unwrap();
-        let output_path = dir.path().join("package.xml");
-        let client = make_non_interactive_client();
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: Some(output_path.clone()),
-            non_interactive: true,
-            all: false,
-            types: Some(vec!["ApexClass".to_string(), "Report".to_string()]),
-        };
-        crate::run_generate(&client, &args).unwrap();
-        let content = std::fs::read_to_string(&output_path).unwrap();
-        assert!(content.contains("<name>ApexClass</name>"));
-        assert!(content.contains("<name>Report</name>"));
-        // CustomObject should not be included
-        assert!(!content.contains("<name>CustomObject</name>"));
-    }
-
-    #[test]
-    fn non_interactive_unknown_type_fails() {
-        let client = make_non_interactive_client();
-        let dir = tempfile::tempdir().unwrap();
-        let output_path = dir.path().join("package.xml");
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: Some(output_path),
-            non_interactive: true,
-            all: false,
-            types: Some(vec!["NonExistentType".to_string()]),
-        };
-        let err = crate::run_generate(&client, &args).unwrap_err();
-        match err {
-            AppError::ValidationError { message } => {
-                assert!(message.contains("Unknown metadata type"));
-            }
-            other => panic!("Expected ValidationError, got: {other:?}"),
-        }
-    }
-
-    #[test]
-    fn all_without_non_interactive_fails() {
-        let client = make_non_interactive_client();
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: Some(PathBuf::from("out.xml")),
-            non_interactive: false,
-            all: true,
-            types: None,
-        };
-        let err = crate::run_generate(&client, &args).unwrap_err();
-        assert!(matches!(err, AppError::ValidationError { .. }));
-    }
-
-    #[test]
-    fn non_interactive_without_all_or_types_fails() {
-        let client = make_non_interactive_client();
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: Some(PathBuf::from("out.xml")),
-            non_interactive: true,
-            all: false,
-            types: None,
-        };
-        let err = crate::run_generate(&client, &args).unwrap_err();
-        assert!(matches!(err, AppError::ValidationError { .. }));
-    }
-
-    #[test]
-    fn non_interactive_without_output_file_fails() {
-        let client = make_non_interactive_client();
-        let args = GenerateArgs {
-            target_org: None,
-            api_version: Some("62.0".to_string()),
-            output_file: None,
-            non_interactive: true,
-            all: true,
-            types: None,
-        };
-        let err = crate::run_generate(&client, &args).unwrap_err();
-        assert!(matches!(err, AppError::ValidationError { .. }));
     }
 }

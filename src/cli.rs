@@ -28,18 +28,6 @@ pub(crate) struct GenerateArgs {
     /// Output file path
     #[arg(short = 'f', long = "output-file")]
     pub(crate) output_file: Option<PathBuf>,
-
-    /// Run in non-interactive mode (requires --all or --types)
-    #[arg(long = "non-interactive")]
-    pub(crate) non_interactive: bool,
-
-    /// Include all metadata types and components (non-interactive only)
-    #[arg(long, conflicts_with = "types")]
-    pub(crate) all: bool,
-
-    /// Comma-separated list of metadata types (non-interactive only)
-    #[arg(long, value_delimiter = ',')]
-    pub(crate) types: Option<Vec<String>>,
 }
 
 #[cfg(test)]
@@ -125,57 +113,6 @@ mod tests {
     #[test]
     fn unknown_option_is_error() {
         let result = Cli::try_parse_from(["sf-pkgen", "generate", "--unknown"]);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn non_interactive_with_all_parses() {
-        let cli = Cli::try_parse_from([
-            "sf-pkgen",
-            "generate",
-            "--non-interactive",
-            "--all",
-            "-f",
-            "package.xml",
-        ])
-        .unwrap();
-        let Commands::Generate(args) = cli.command;
-        assert!(args.non_interactive);
-        assert!(args.all);
-        assert!(args.types.is_none());
-    }
-
-    #[test]
-    fn non_interactive_with_types_parses() {
-        let cli = Cli::try_parse_from([
-            "sf-pkgen",
-            "generate",
-            "--non-interactive",
-            "--types",
-            "ApexClass,Report",
-            "-f",
-            "package.xml",
-        ])
-        .unwrap();
-        let Commands::Generate(args) = cli.command;
-        assert!(args.non_interactive);
-        assert!(!args.all);
-        assert_eq!(
-            args.types,
-            Some(vec!["ApexClass".to_string(), "Report".to_string()])
-        );
-    }
-
-    #[test]
-    fn types_single_value_parses() {
-        let cli = Cli::try_parse_from(["sf-pkgen", "generate", "--types", "ApexClass"]).unwrap();
-        let Commands::Generate(args) = cli.command;
-        assert_eq!(args.types, Some(vec!["ApexClass".to_string()]));
-    }
-
-    #[test]
-    fn all_and_types_conflict() {
-        let result = Cli::try_parse_from(["sf-pkgen", "generate", "--all", "--types", "ApexClass"]);
         assert!(result.is_err());
     }
 }

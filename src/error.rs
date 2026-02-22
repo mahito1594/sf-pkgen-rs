@@ -28,9 +28,6 @@ pub(crate) enum AppError {
     #[error("{0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("{message}")]
-    ValidationError { message: String },
-
     #[error("")]
     Cancelled,
 }
@@ -72,9 +69,6 @@ mod tests {
                 message: "path error".to_string(),
             },
             AppError::IoError(std::io::Error::new(std::io::ErrorKind::NotFound, "test")),
-            AppError::ValidationError {
-                message: "invalid".to_string(),
-            },
         ];
         for error in &cases {
             assert_eq!(error.exit_code(), 1, "Failed for: {error:?}");
@@ -138,14 +132,6 @@ mod tests {
             message: "manifest/package.xml は既に存在します。".to_string(),
         };
         assert_eq!(error.to_string(), "manifest/package.xml は既に存在します。");
-    }
-
-    #[test]
-    fn display_validation_error() {
-        let error = AppError::ValidationError {
-            message: "--all requires --non-interactive".to_string(),
-        };
-        assert_eq!(error.to_string(), "--all requires --non-interactive");
     }
 
     #[test]

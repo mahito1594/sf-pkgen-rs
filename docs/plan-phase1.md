@@ -29,8 +29,8 @@ Salesforce 開発用の `package.xml` をインタラクティブに生成する
 | 11 | lib+bin 分離と `run_generate` 公開 | ✅ 完了 |
 | 12 | Ctrl+C シグナルハンドリング | ✅ 完了 |
 | 13 | 統合テスト（TUI 到達前） | ✅ 完了 |
-| 14a | 非対話モード — CLI 引数・バリデーション | ✅ 完了 |
-| 14b | 非対話モード — resolve ロジック・統合テスト | ✅ 完了 |
+| 14a | 非対話モード — CLI 引数・バリデーション | 🗑️ 削除済み |
+| 14b | 非対話モード — resolve ロジック・統合テスト | 🗑️ 削除済み |
 | 15 | Wildcard コメント整合性更新 | ✅ 完了 |
 
 **Phase 2 後の追加改善**
@@ -55,7 +55,6 @@ sf-pkgen/
     sf_client.rs         -- sf CLI 連携 (trait + 実装)
     ansi.rs              -- ANSI エスケープ除去
     signal.rs            -- Ctrl+C シグナルハンドリング (ctrlc クレート)
-    non_interactive.rs   -- 非対話モードの選択解決ロジック
     wildcard.rs          -- ワイルドカード対応判定
     xml.rs               -- package.xml 生成
     output.rs            -- 出力先バリデーション・書き込み
@@ -356,7 +355,6 @@ sf-pkgen/
 | 7b | — |
 | 8 | — |
 | 12 | `ctrlc` |
-| 14b | dev: `tempfile` |
 
 ## 設計上の重要な判断
 
