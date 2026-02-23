@@ -9,6 +9,21 @@ Browse metadata types with fuzzy search, select components via a TUI, and genera
 
 ## Installation
 
+### Homebrew (macOS)
+
+```bash
+brew install mahito1594/tap/sf-pkgen
+```
+
+### Pre-built binaries
+
+Download a pre-built binary from [GitHub Releases](https://github.com/mahito1594/sf-pkgen-rs/releases).
+
+Binaries are available for:
+- macOS (Apple Silicon)
+- Linux (x86_64, statically linked)
+- Windows (x86_64)
+
 ### Build from source
 
 ```bash
