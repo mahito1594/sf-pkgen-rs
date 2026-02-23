@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Salesforce 開発用の `package.xml` をインタラクティブに生成する Rust 製 CLI ツール。sf CLI (v2) と連携し、TUI でメタデータ型・コンポーネントを選択して package.xml を生成する。
 
-詳細は `docs/specification.md`（仕様書）、`docs/plan-phase1.md`（Phase 1 実装計画）、`docs/plan-phase2.md`（Phase 2 実装計画）を参照。
+詳細は `docs/specification.md`（仕様書）、`docs/architecture.md`（アーキテクチャ）を参照。
 
 ## ビルド・テスト・Lint
 
@@ -34,7 +34,7 @@ cargo clippy                    # lint
 
 ### I/O チャネル
 
-アプリケーション固有の出力は stdout を使わない。進捗メッセージ・エラー・プロンプトは stderr、TUI は /dev/tty、XML はファイル出力。`--help` / `--version` は clap のデフォルト動作（stdout）に従う。
+進捗メッセージ・エラー・プロンプトは stderr、TUI は /dev/tty、XML はファイル出力。`--help` / `--version` は clap のデフォルト動作（stdout）に従う。
 
 ### 処理フロー (`main.rs: run_generate`)
 

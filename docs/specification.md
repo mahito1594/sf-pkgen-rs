@@ -21,23 +21,16 @@ Salesforce 開発用の `package.xml` をインタラクティブに生成する
 | 言語 | Rust |
 | CLI フレームワーク | clap（derive feature） |
 | TUI フレームワーク | ratatui + crossterm |
-| Fuzzy search | nucleo |
+| Fuzzy search | nucleo-matcher |
 | XML 生成 | quick-xml |
 | JSON パース（sf CLI 出力） | serde + serde_json |
 | ANSI エスケープ除去 | regex |
+| シグナルハンドリング | ctrlc |
 | プロセス実行 | std::process::Command |
 
 ## コマンド体系
 
-```
-sf-pkgen <SUBCOMMAND>
-
-SUBCOMMANDS:
-  generate    package.xml を生成する
-  help        ヘルプを表示する
-```
-
-### `sf-pkgen generate`
+コマンドの詳細（オプション一覧、キーバインド、終了コード等）は [README.md](../README.md) を参照。
 
 ```
 sf-pkgen generate [OPTIONS]
@@ -47,45 +40,6 @@ OPTIONS:
   -a, --api-version <VERSION>         API version（省略時: sf CLI のデフォルト値）
   -f, --output-file <PATH>            出力先ファイルパス（省略時: プロンプトで尋ねる）
 ```
-
-## ユーザーフロー
-
-```
-$ sf-pkgen generate
-
-  メタデータ型を取得中...
-
-  ┌─ メタデータ型 ────────────────┬─ コンポーネント ─────────────┐
-  │ > ApexClass                   │ [x] *                        │
-  │   ApexTrigger                 │ [ ] AccountController        │
-  │   ApexComponent               │ [ ] ContactService           │
-  │   ApexPage                    │ [ ] OpportunityHelper        │
-  │   LightningComponentBundle    │ [ ] TaskScheduler            │
-  │   CustomObject                │ [ ] UserManager              │
-  │   Report                      │ ...                          │
-  │   ...                         │                              │
-  │                               │                              │
-  └───────────────────────────────┴──────────────────────────────┘
-  Tab: ペイン切替  Space: 選択/解除  Enter: 確定  /: 検索
-  Esc/Ctrl+C: キャンセル
-
-  出力先ファイルパス: manifest/package.xml⏎
-
-  manifest/package.xml に出力しました。
-```
-
-### 操作説明
-
-- **左ペイン**: メタデータ型一覧。fuzzy search に対応し、カーソル移動でハイライト中の型を変更する
-- **右ペイン**: ハイライト中の型のコンポーネント一覧。Space で選択/解除する
-  - ワイルドカード対応型: 先頭に `*` エントリが表示される
-  - ワイルドカード非対応型: 個別コンポーネントのみ表示される
-  - `*` と個別コンポーネントは排他的に選択される（`*` を選択すると個別選択は解除され、個別コンポーネントを選択すると `*` は解除される）
-- **Tab**: 左右ペイン間のフォーカス切替
-- **Space**: 右ペインでコンポーネントを選択/解除
-- **/**: 左ペインで fuzzy search を開始
-- **Enter**: 選択を確定し、package.xml を生成
-- **Esc / Ctrl+C**: キャンセルして終了
 
 ## 内部処理フロー
 
@@ -112,6 +66,7 @@ $ sf-pkgen generate
          - ワイルドカード対応型: 先頭に `*` エントリを表示
          - ワイルドカード非対応型: 個別コンポーネントのみ表示
          - コンポーネント一覧は `sf org list metadata -m <Type> [-o <org>] --api-version <ver> --json` で取得（キャッシュ）
+         - コンポーネント取得はバックグラウンドスレッドで実行（sf CLI 呼び出し中もキー入力を受け付ける）
        - 選択結果の保持: 型 → 選択されたコンポーネントのリスト（`*` または個別の `fullName` リスト）のマッピング
        - `*` と個別コンポーネントは排他: `*` 選択時は個別選択を自動解除し、個別選択時は `*` を自動解除する
        └─ Enter 確定: 1つ以上のコンポーネントが選択されている場合
@@ -130,6 +85,7 @@ $ sf-pkgen generate
 6. 選択されたメタデータ型 + API version から package.xml を構築
 
 7. XML をファイルに書き出し
+   └─ create_new(true) で「存在しない場合のみ作成」を一操作で実行（TOCTOU: Time-of-Check to Time-of-Use 防止）
 ```
 
 ## sf CLI 連携仕様
@@ -166,7 +122,7 @@ sf CLI の `--json` 出力は環境によって ANSI エスケープコードが
 JSON が不正になる等の既知の問題がある。sf-pkgen はすべての sf コマンド呼び出しで
 以下の手順に従い結果を処理する（ただしコンポーネント一覧取得は例外: 同じパース手順（ANSI 除去 → JSON パース → status 確認）を適用するが、エラー時にプロセスを終了せず右ペインにエラーメッセージを表示するのみとする。詳細は該当セクションを参照）:
 
-1. **stdout の正規化**: ANSI エスケープシーケンス（パターン: `\x1b\[[0-9;]*[a-zA-Z]`）を除去する
+1. **stdout の正規化**: ANSI エスケープシーケンス（CSI シーケンスパターン: `\x1b\[[\x20-\x3f]*[\x40-\x7e]`）を除去する
 2. **JSON パース**: 正規化した stdout を JSON としてパースする
    - パース失敗時: stderr の内容をそのまま表示し、プラグイン不足の可能性をヒントとして付記して終了（コード 1）
 3. **status 確認**: JSON の `status` フィールドを確認する
@@ -201,8 +157,6 @@ sf org list metadata-types [-o <org>] --api-version <ver> --json
 レスポンス（`result.metadataObjects`）から以下を利用する:
 
 - `xmlName`: package.xml の `<name>` に使用する型名
-- `directoryName`: 表示の補助情報（必要に応じて）
-- `inFolder`: フォルダ型かどうか（参考情報）
 
 ### コンポーネント一覧取得
 
@@ -215,9 +169,10 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 - レスポンスの各要素から `fullName` を取得し、右ペインに選択肢として表示する
 - ワイルドカード対応型の場合、取得した一覧の先頭に `*` エントリを追加する
 - 取得結果はセッション中キャッシュし、同じ型への再アクセス時は再取得しない
+- 取得はバックグラウンドスレッドで実行し、取得中もキー入力を受け付ける
+- 取得中は右ペインに `Loading...` を表示する
 - 取得失敗時は右ペインにエラーメッセージ（sf CLI の `message`）を表示する（TUI 全体のエラーにはしない）
 - 取得失敗した型のコンポーネントは選択不可とする（Enter 確定時、選択済みコンポーネントが他の型にあれば正常に進行する）
-- 取得中は右ペインに「取得中...」を表示する
 
 ### エラー検知
 
@@ -268,22 +223,13 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 | `--help` / `--version` | stdout（clap のデフォルト動作） |
 | TUI（型選択・コンポーネント選択） | /dev/tty（ratatui + crossterm が管理） |
 | TUI のキー入力 | /dev/tty（ratatui + crossterm が管理） |
-| 進捗メッセージ（「メタデータ型を取得中...」等） | stderr |
+| 進捗メッセージ（`Fetching metadata types...` 等） | stderr |
 | 出力先プロンプト（表示） | stderr |
 | 出力先プロンプト（入力） | stdin |
 | 生成された XML | --output-file で指定されたファイル、またはプロンプトで指定されたファイル |
-| 完了メッセージ | stderr |
+| 完了メッセージ（`Written to <path>.`） | stderr |
 
 進捗メッセージは `eprintln!` による単純なテキスト出力とする（スピナー等は使用しない）。
-
-## 終了コード
-
-| コード | 状況 |
-|--------|------|
-| 0 | 正常終了（XML 出力完了） |
-| 1 | 一般エラー（sf CLI エラー、プラグイン不足、選択ゼロ等） |
-| 2 | 引数不正（clap が処理） |
-| 130 | Ctrl+C によるキャンセル（TUI 操作中・コマンド実行中とも） |
 
 ## エラーハンドリング
 
@@ -340,3 +286,4 @@ sf org list metadata -m <MetadataType> [-o <org>] --api-version <ver> --json
 - `diff` サブコマンド（2つの package.xml の差分表示）
 - 設定ファイルによるプリセット（よく使う型の組み合わせを保存）
 - Windows 対応（`sf.cmd` へのフォールバック等）
+- 非対話モード（`--non-interactive` + `--all` / `--types` による CI/CD 向けフロー）
