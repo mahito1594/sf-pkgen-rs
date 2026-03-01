@@ -256,24 +256,18 @@ impl AppState {
         };
 
         let results = fuzzy_filter(&self.right_search_query, components);
-        let matched_indices: HashSet<usize> = results.iter().map(|&(i, _)| i).collect();
 
         // Always include `*` (index 0) if it exists and is wildcard
         let has_wildcard = components.first().is_some_and(|c| c == "*");
 
         self.right_filtered_indices = if has_wildcard {
             let mut indices = vec![0usize]; // Always include `*`
+            // Filter out index 0 to avoid duplicating `*`
             indices.extend(results.iter().map(|&(i, _)| i).filter(|&i| i != 0));
             indices
         } else {
             results.into_iter().map(|(i, _)| i).collect()
         };
-
-        // If wildcard is already in matched results, avoid duplicates
-        if has_wildcard && matched_indices.contains(&0) {
-            // `*` is already included at position 0, and won't be duplicated
-            // because we filter i != 0 above
-        }
 
         self.right_cursor = 0;
     }
@@ -292,8 +286,7 @@ impl AppState {
 
     pub(crate) fn clear_right_search(&mut self) {
         self.right_search_query.clear();
-        self.rebuild_right_filtered_indices();
-        self.right_cursor = 0;
+        self.rebuild_right_filtered_indices(); // This also resets right_cursor to 0
         if self.searching_pane == Some(FocusPane::Right) {
             self.searching_pane = None;
         }
@@ -1045,5 +1038,32 @@ mod tests {
             app.searching_pane.is_none(),
             "Should not enter search mode when components not loaded"
         );
+    }
+
+    #[test]
+    fn empty_filter_result_folder_type_safe_toggle_and_cursor() {
+        let mut app = app_with_loaded_components();
+        // Move to Report (folder-based, no wildcard)
+        app.left_cursor = 2;
+        app.rebuild_right_filtered_indices();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        // Search for something that matches nothing
+        app.update_search('z');
+        app.update_search('z');
+        app.update_search('z');
+
+        // No wildcard for folder-based types, so list should be truly empty
+        assert!(
+            app.right_filtered_indices.is_empty(),
+            "Folder-based type with no matches should have empty filtered indices"
+        );
+
+        // Cursor movement should be safe
+        app.move_cursor_down();
+        app.move_cursor_up();
+
+        // toggle_selection should be safe (no crash)
+        app.toggle_selection();
     }
 }
