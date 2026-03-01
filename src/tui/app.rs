@@ -275,6 +275,7 @@ impl AppState {
         type_name: &str,
         mut components: Vec<String>,
     ) -> Vec<String> {
+        components.sort();
         if supports_wildcard(type_name) {
             components.insert(0, "*".to_string());
         }
@@ -542,11 +543,11 @@ mod tests {
         // Move to Report (index 2)
         app.left_cursor = 2;
         app.focus = FocusPane::Right;
-        // Report components: ["SalesReport", "MarketingReport"] (no *)
+        // Report components: ["MarketingReport", "SalesReport"] (no *, sorted)
         app.right_cursor = 0;
         app.toggle_selection();
         let selected = &app.selections["Report"];
-        assert!(selected.contains("SalesReport"));
+        assert!(selected.contains("MarketingReport"));
     }
 
     // -- search --
@@ -716,12 +717,33 @@ mod tests {
     fn build_component_list_with_wildcard() {
         let list =
             AppState::build_component_list("ApexClass", vec!["Foo".to_string(), "Bar".to_string()]);
-        assert_eq!(list, vec!["*", "Foo", "Bar"]);
+        assert_eq!(list, vec!["*", "Bar", "Foo"]);
     }
 
     #[test]
     fn build_component_list_folder_type_no_wildcard() {
         let list = AppState::build_component_list("Report", vec!["SalesReport".to_string()]);
         assert_eq!(list, vec!["SalesReport"]);
+    }
+
+    #[test]
+    fn build_component_list_sorts_folder_type() {
+        let list = AppState::build_component_list(
+            "Report",
+            vec!["SalesReport".to_string(), "MarketingReport".to_string()],
+        );
+        assert_eq!(list, vec!["MarketingReport", "SalesReport"]);
+    }
+
+    #[test]
+    fn build_component_list_empty_with_wildcard() {
+        let list = AppState::build_component_list("ApexClass", vec![]);
+        assert_eq!(list, vec!["*"]);
+    }
+
+    #[test]
+    fn build_component_list_empty_without_wildcard() {
+        let list = AppState::build_component_list("Report", vec![]);
+        assert!(list.is_empty());
     }
 }
