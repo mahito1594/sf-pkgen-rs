@@ -3,6 +3,8 @@
 An interactive CLI tool for generating Salesforce `package.xml` files.
 Browse metadata types with fuzzy search, select components via a TUI, and generate a well-formatted `package.xml`.
 
+![sf-pkgen demo](docs/demo.gif)
+
 ## Runtime Prerequisites
 
 - [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`) v2
