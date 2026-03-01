@@ -47,3 +47,19 @@ jobs:
 
       - name: Test
         run: cargo test
+
+  notice:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
+      - name: Verify NOTICE is up to date
+        run: |
+          cargo about generate -o NOTICE.check about.hbs
+          diff NOTICE NOTICE.check || (echo "NOTICE file is out of date. Run: cargo about generate -o NOTICE about.hbs" && exit 1)
