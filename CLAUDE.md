@@ -20,6 +20,14 @@ cargo clippy                    # lint
 
 各変更後に `cargo fmt && cargo build && cargo test && cargo clippy` が通ることを確認する。
 
+### バージョンアップ
+
+`Cargo.toml` の `version` を変更した場合、NOTICE ファイルの再生成が必要（CI の `notice` ジョブで整合性を検証している）。
+
+```bash
+cargo about generate -o NOTICE about.hbs
+```
+
 ## 開発ルール
 
 - 依存クレートの追加は `cargo add` コマンドを使うこと（Cargo.toml の手動編集ではなく）
