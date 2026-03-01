@@ -31,14 +31,16 @@ pub(crate) struct AppState {
     pub(crate) filtered_indices: Vec<usize>,
     pub(crate) left_cursor: usize,
     pub(crate) search_query: String,
-    pub(crate) is_searching: bool,
 
     // Right pane
     pub(crate) component_cache: HashMap<String, ComponentLoadState>,
     pub(crate) right_cursor: usize,
+    pub(crate) right_search_query: String,
+    pub(crate) right_filtered_indices: Vec<usize>,
     pub(crate) selections: HashMap<String, HashSet<String>>,
 
     // Common
+    pub(crate) searching_pane: Option<FocusPane>,
     pub(crate) focus: FocusPane,
     pub(crate) should_quit: bool,
     pub(crate) cancelled: bool,
@@ -52,10 +54,12 @@ impl AppState {
             filtered_indices,
             left_cursor: 0,
             search_query: String::new(),
-            is_searching: false,
             component_cache: HashMap::new(),
             right_cursor: 0,
+            right_search_query: String::new(),
+            right_filtered_indices: Vec::new(),
             selections: HashMap::new(),
+            searching_pane: None,
             focus: FocusPane::Left,
             should_quit: false,
             cancelled: false,
@@ -89,15 +93,13 @@ impl AppState {
                     } else {
                         self.left_cursor -= 1;
                     }
-                    self.right_cursor = 0;
+                    self.clear_right_search();
                 }
             }
             FocusPane::Right => {
-                if let Some(components) = self.highlighted_components()
-                    && !components.is_empty()
-                {
+                if !self.right_filtered_indices.is_empty() {
                     if self.right_cursor == 0 {
-                        self.right_cursor = components.len() - 1;
+                        self.right_cursor = self.right_filtered_indices.len() - 1;
                     } else {
                         self.right_cursor -= 1;
                     }
@@ -111,14 +113,12 @@ impl AppState {
             FocusPane::Left => {
                 if !self.filtered_indices.is_empty() {
                     self.left_cursor = (self.left_cursor + 1) % self.filtered_indices.len();
-                    self.right_cursor = 0;
+                    self.clear_right_search();
                 }
             }
             FocusPane::Right => {
-                if let Some(components) = self.highlighted_components()
-                    && !components.is_empty()
-                {
-                    self.right_cursor = (self.right_cursor + 1) % components.len();
+                if !self.right_filtered_indices.is_empty() {
+                    self.right_cursor = (self.right_cursor + 1) % self.right_filtered_indices.len();
                 }
             }
         }
@@ -152,8 +152,13 @@ impl AppState {
             None => return,
         };
 
+        let actual_index = match self.right_filtered_indices.get(self.right_cursor) {
+            Some(&i) => i,
+            None => return,
+        };
+
         let component_name = match self.highlighted_components() {
-            Some(components) => match components.get(self.right_cursor) {
+            Some(components) => match components.get(actual_index) {
                 Some(name) => name.clone(),
                 None => return,
             },
@@ -179,23 +184,52 @@ impl AppState {
     // -- Search --
 
     pub(crate) fn start_search(&mut self) {
-        self.is_searching = true;
-        self.search_query.clear();
-        self.apply_fuzzy_filter();
+        match self.focus {
+            FocusPane::Left => {
+                self.searching_pane = Some(FocusPane::Left);
+                self.search_query.clear();
+                self.apply_fuzzy_filter();
+            }
+            FocusPane::Right => {
+                if self.can_search_right() {
+                    self.searching_pane = Some(FocusPane::Right);
+                    self.right_search_query.clear();
+                    self.apply_right_fuzzy_filter();
+                }
+            }
+        }
     }
 
     pub(crate) fn update_search(&mut self, ch: char) {
-        self.search_query.push(ch);
-        self.apply_fuzzy_filter();
+        match self.searching_pane {
+            Some(FocusPane::Left) => {
+                self.search_query.push(ch);
+                self.apply_fuzzy_filter();
+            }
+            Some(FocusPane::Right) => {
+                self.right_search_query.push(ch);
+                self.apply_right_fuzzy_filter();
+            }
+            None => {}
+        }
     }
 
     pub(crate) fn backspace_search(&mut self) {
-        self.search_query.pop();
-        self.apply_fuzzy_filter();
+        match self.searching_pane {
+            Some(FocusPane::Left) => {
+                self.search_query.pop();
+                self.apply_fuzzy_filter();
+            }
+            Some(FocusPane::Right) => {
+                self.right_search_query.pop();
+                self.apply_right_fuzzy_filter();
+            }
+            None => {}
+        }
     }
 
     pub(crate) fn end_search(&mut self) {
-        self.is_searching = false;
+        self.searching_pane = None;
     }
 
     pub(crate) fn apply_fuzzy_filter(&mut self) {
@@ -208,7 +242,65 @@ impl AppState {
         let results = fuzzy_filter(&self.search_query, &type_names);
         self.filtered_indices = results.into_iter().map(|(i, _)| i).collect();
         self.left_cursor = 0;
+        self.clear_right_search();
+    }
+
+    pub(crate) fn apply_right_fuzzy_filter(&mut self) {
+        let components = match self.highlighted_components() {
+            Some(c) => c,
+            None => {
+                self.right_filtered_indices.clear();
+                self.right_cursor = 0;
+                return;
+            }
+        };
+
+        let results = fuzzy_filter(&self.right_search_query, components);
+        let matched_indices: HashSet<usize> = results.iter().map(|&(i, _)| i).collect();
+
+        // Always include `*` (index 0) if it exists and is wildcard
+        let has_wildcard = components.first().is_some_and(|c| c == "*");
+
+        self.right_filtered_indices = if has_wildcard {
+            let mut indices = vec![0usize]; // Always include `*`
+            indices.extend(results.iter().map(|&(i, _)| i).filter(|&i| i != 0));
+            indices
+        } else {
+            results.into_iter().map(|(i, _)| i).collect()
+        };
+
+        // If wildcard is already in matched results, avoid duplicates
+        if has_wildcard && matched_indices.contains(&0) {
+            // `*` is already included at position 0, and won't be duplicated
+            // because we filter i != 0 above
+        }
+
         self.right_cursor = 0;
+    }
+
+    pub(crate) fn rebuild_right_filtered_indices(&mut self) {
+        match self.highlighted_components() {
+            Some(components) => {
+                self.right_filtered_indices = (0..components.len()).collect();
+            }
+            None => {
+                self.right_filtered_indices.clear();
+            }
+        }
+        self.right_cursor = 0;
+    }
+
+    pub(crate) fn clear_right_search(&mut self) {
+        self.right_search_query.clear();
+        self.rebuild_right_filtered_indices();
+        self.right_cursor = 0;
+        if self.searching_pane == Some(FocusPane::Right) {
+            self.searching_pane = None;
+        }
+    }
+
+    pub(crate) fn can_search_right(&self) -> bool {
+        self.highlighted_components().is_some()
     }
 
     // -- Confirm / Cancel --
@@ -250,6 +342,13 @@ impl AppState {
                 self.component_cache
                     .insert(type_name.to_string(), ComponentLoadState::Error(msg));
             }
+        }
+        // Rebuild right filtered indices if the loaded type is currently highlighted
+        if self
+            .highlighted_type()
+            .is_some_and(|t| t.xml_name == type_name)
+        {
+            self.rebuild_right_filtered_indices();
         }
     }
 
@@ -337,7 +436,7 @@ mod tests {
         assert_eq!(app.focus, FocusPane::Left);
         assert!(!app.should_quit);
         assert!(!app.cancelled);
-        assert!(!app.is_searching);
+        assert!(app.searching_pane.is_none());
     }
 
     // -- highlighted_type --
@@ -542,6 +641,7 @@ mod tests {
         let mut app = app_with_loaded_components();
         // Move to Report (index 2)
         app.left_cursor = 2;
+        app.rebuild_right_filtered_indices();
         app.focus = FocusPane::Right;
         // Report components: ["MarketingReport", "SalesReport"] (no *, sorted)
         app.right_cursor = 0;
@@ -556,7 +656,7 @@ mod tests {
     fn search_filters_types() {
         let mut app = AppState::new(sample_types());
         app.start_search();
-        assert!(app.is_searching);
+        assert_eq!(app.searching_pane, Some(FocusPane::Left));
 
         app.update_search('A');
         app.update_search('p');
@@ -592,7 +692,7 @@ mod tests {
         let mut app = AppState::new(sample_types());
         app.start_search();
         app.end_search();
-        assert!(!app.is_searching);
+        assert!(app.searching_pane.is_none());
     }
 
     #[test]
@@ -745,5 +845,205 @@ mod tests {
     fn build_component_list_empty_without_wildcard() {
         let list = AppState::build_component_list("Report", vec![]);
         assert!(list.is_empty());
+    }
+
+    // -- right pane search --
+
+    #[test]
+    fn right_search_filters_components() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        assert_eq!(app.searching_pane, Some(FocusPane::Right));
+
+        app.update_search('A');
+        app.update_search('c');
+        app.update_search('c');
+
+        // Should filter to AccountController (and wildcard *)
+        let filtered_names: Vec<&str> = app
+            .right_filtered_indices
+            .iter()
+            .filter_map(|&i| {
+                app.highlighted_components()
+                    .and_then(|c| c.get(i))
+                    .map(|s| s.as_str())
+            })
+            .collect();
+        assert!(filtered_names.contains(&"AccountController"));
+        assert!(!filtered_names.contains(&"ContactService"));
+    }
+
+    #[test]
+    fn right_search_always_shows_wildcard() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+
+        // Search for something that doesn't match "*"
+        app.update_search('C');
+        app.update_search('o');
+        app.update_search('n');
+
+        // Wildcard should still be in the list
+        let filtered_names: Vec<&str> = app
+            .right_filtered_indices
+            .iter()
+            .filter_map(|&i| {
+                app.highlighted_components()
+                    .and_then(|c| c.get(i))
+                    .map(|s| s.as_str())
+            })
+            .collect();
+        assert!(
+            filtered_names.contains(&"*"),
+            "Wildcard should always be shown: {filtered_names:?}"
+        );
+        assert!(filtered_names[0] == "*", "Wildcard should be first");
+    }
+
+    #[test]
+    fn right_search_no_wildcard_for_folder_type() {
+        let mut app = app_with_loaded_components();
+        // Move to Report (folder-based, no wildcard)
+        app.left_cursor = 2;
+        app.rebuild_right_filtered_indices();
+        app.focus = FocusPane::Right;
+        app.start_search();
+
+        app.update_search('S');
+        app.update_search('a');
+
+        let filtered_names: Vec<&str> = app
+            .right_filtered_indices
+            .iter()
+            .filter_map(|&i| {
+                app.highlighted_components()
+                    .and_then(|c| c.get(i))
+                    .map(|s| s.as_str())
+            })
+            .collect();
+        assert!(filtered_names.contains(&"SalesReport"));
+        assert!(!filtered_names.contains(&"*"));
+    }
+
+    #[test]
+    fn left_cursor_move_clears_right_search() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('A');
+        assert!(!app.right_search_query.is_empty());
+
+        // Switch to left pane and move cursor
+        app.focus = FocusPane::Left;
+        app.move_cursor_down();
+
+        assert!(app.right_search_query.is_empty());
+        assert!(app.searching_pane.is_none());
+    }
+
+    #[test]
+    fn right_search_toggle_selection_correct_component() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        // Search for "Contact" to filter
+        app.update_search('C');
+        app.update_search('o');
+        app.update_search('n');
+        app.update_search('t');
+
+        // right_filtered_indices should have: [0 (*), index_of_ContactService]
+        // Move cursor to the ContactService entry (skip wildcard)
+        app.right_cursor = 1;
+        app.toggle_selection();
+
+        let selected = app.selections.get("ApexClass").unwrap();
+        assert!(
+            selected.contains("ContactService"),
+            "Should select ContactService via filtered index"
+        );
+    }
+
+    #[test]
+    fn right_search_cursor_wraps_on_filtered_len() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        // Filter to reduce list size
+        app.update_search('A');
+        app.update_search('c');
+        app.update_search('c');
+
+        let filtered_len = app.right_filtered_indices.len();
+        // Move cursor down past the end should wrap
+        for _ in 0..filtered_len {
+            app.move_cursor_down();
+        }
+        assert_eq!(app.right_cursor, 0);
+    }
+
+    #[test]
+    fn set_components_rebuilds_right_filtered_indices() {
+        let mut app = AppState::new(sample_types());
+        assert!(app.right_filtered_indices.is_empty());
+
+        // Load components for the highlighted type (ApexClass)
+        app.set_components(
+            "ApexClass",
+            Ok(AppState::build_component_list(
+                "ApexClass",
+                vec!["Foo".to_string(), "Bar".to_string()],
+            )),
+        );
+
+        // right_filtered_indices should be rebuilt: [0, 1, 2] for ["*", "Bar", "Foo"]
+        assert_eq!(app.right_filtered_indices, vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn empty_filter_result_safe_toggle_and_cursor() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        // Search for something that matches nothing
+        app.update_search('z');
+        app.update_search('z');
+        app.update_search('z');
+
+        // Wildcard should still be there for wildcard-supporting types
+        // but no other matches
+        assert!(app.right_filtered_indices.len() <= 1); // only wildcard or empty
+
+        // Cursor movement should be safe
+        app.move_cursor_down();
+        app.move_cursor_up();
+
+        // toggle_selection should be safe (no crash)
+        app.toggle_selection();
+    }
+
+    #[test]
+    fn can_search_right_false_when_no_components() {
+        let app = AppState::new(sample_types());
+        assert!(!app.can_search_right());
+    }
+
+    #[test]
+    fn can_search_right_true_when_loaded() {
+        let app = app_with_loaded_components();
+        assert!(app.can_search_right());
+    }
+
+    #[test]
+    fn start_search_noop_when_right_not_loaded() {
+        let mut app = AppState::new(sample_types());
+        app.focus = FocusPane::Right;
+        app.start_search();
+        assert!(
+            app.searching_pane.is_none(),
+            "Should not enter search mode when components not loaded"
+        );
     }
 }

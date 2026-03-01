@@ -20,7 +20,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &AppState) {
 }
 
 fn draw_left_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect) {
-    let title = if app.is_searching {
+    let title = if app.searching_pane == Some(FocusPane::Left) {
         format!("Metadata Types [/{}]", app.search_query)
     } else {
         "Metadata Types".to_string()
@@ -65,9 +65,15 @@ fn draw_left_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect
 }
 
 fn draw_right_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect) {
-    let title = match app.highlighted_type() {
+    let base_title = match app.highlighted_type() {
         Some(t) => t.xml_name.clone(),
         None => "Components".to_string(),
+    };
+
+    let title = if app.searching_pane == Some(FocusPane::Right) {
+        format!("{base_title} [/{}]", app.right_search_query)
+    } else {
+        base_title
     };
 
     let border_style = if app.focus == FocusPane::Right {
@@ -101,8 +107,10 @@ fn draw_right_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rec
         Some(ComponentLoadState::Loaded(components)) => {
             let selected_set = type_name.and_then(|name| app.selections.get(name));
 
-            let items: Vec<ListItem> = components
+            let items: Vec<ListItem> = app
+                .right_filtered_indices
                 .iter()
+                .filter_map(|&i| components.get(i))
                 .map(|name| {
                     let checked = selected_set.is_some_and(|s| s.contains(name));
                     let checkbox = if checked { "[x] " } else { "[ ] " };
@@ -116,7 +124,7 @@ fn draw_right_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rec
                 .highlight_symbol("> ");
 
             let mut state = ListState::default();
-            if !components.is_empty() {
+            if !app.right_filtered_indices.is_empty() {
                 state.select(Some(app.right_cursor));
             }
 
@@ -126,7 +134,7 @@ fn draw_right_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rec
 }
 
 fn draw_help_bar(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect) {
-    let help_text = if app.is_searching {
+    let help_text = if app.searching_pane.is_some() {
         Line::from(vec![
             Span::styled("Type", Style::default().add_modifier(Modifier::BOLD)),
             Span::raw(": filter  "),
@@ -346,6 +354,56 @@ mod tests {
         assert!(
             output.contains("stop search"),
             "Search help should show 'stop search'"
+        );
+    }
+
+    #[test]
+    fn renders_right_pane_search_title() {
+        let mut app = AppState::new(sample_types());
+        app.set_components(
+            "ApexClass",
+            Ok(AppState::build_component_list(
+                "ApexClass",
+                vec!["Foo".to_string()],
+            )),
+        );
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('F');
+        let output = render_to_string(&app, 80, 10);
+        assert!(
+            output.contains("[/F]"),
+            "Should show search query in right pane title: {output}"
+        );
+    }
+
+    #[test]
+    fn renders_filtered_components_only() {
+        let mut app = AppState::new(sample_types());
+        app.set_components(
+            "ApexClass",
+            Ok(AppState::build_component_list(
+                "ApexClass",
+                vec![
+                    "AccountController".to_string(),
+                    "ContactService".to_string(),
+                ],
+            )),
+        );
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('A');
+        app.update_search('c');
+        app.update_search('c');
+        let output = render_to_string(&app, 80, 10);
+        assert!(
+            output.contains("AccountController"),
+            "Should show filtered component: {output}"
+        );
+        // ContactService should be filtered out
+        assert!(
+            !output.contains("ContactService"),
+            "Should not show filtered-out component: {output}"
         );
     }
 }
