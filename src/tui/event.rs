@@ -51,7 +51,7 @@ pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
             app.focus_right();
             maybe_load_components(app)
         }
-        KeyCode::Char('/') if app.focus == FocusPane::Left || app.can_search_right() => {
+        KeyCode::Char('/') => {
             app.start_search();
             Action::None
         }
@@ -319,6 +319,21 @@ mod tests {
         let action = handle_key_event(&mut app, key(KeyCode::Char('/')));
         assert_eq!(action, Action::None);
         assert_eq!(app.searching_pane, Some(FocusPane::Left));
+    }
+
+    #[test]
+    fn slash_starts_left_search_when_focus_left_even_if_right_loaded() {
+        // Verifies that the guard in start_search() routes correctly:
+        // Left focus always starts left search, regardless of can_search_right().
+        let mut app = app_with_components();
+        assert_eq!(app.focus, FocusPane::Left);
+        assert!(app.can_search_right(), "Precondition: right pane is loaded");
+        handle_key_event(&mut app, key(KeyCode::Char('/')));
+        assert_eq!(
+            app.searching_pane,
+            Some(FocusPane::Left),
+            "Left focus should always start left search"
+        );
     }
 
     #[test]

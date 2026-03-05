@@ -257,13 +257,13 @@ impl AppState {
 
         let results = fuzzy_filter(&self.right_search_query, components);
 
-        // Always include `*` (index 0) if it exists and is wildcard
-        let has_wildcard = components.first().is_some_and(|c| c == "*");
+        // Find `*` dynamically so that `apply_right_fuzzy_filter` does not depend on
+        // `*` always being at index 0 (an implicit assumption of `build_component_list`).
+        let wildcard_idx = components.iter().position(|c| c == "*");
 
-        self.right_filtered_indices = if has_wildcard {
-            let mut indices = vec![0usize]; // Always include `*`
-            // Filter out index 0 to avoid duplicating `*`
-            indices.extend(results.iter().map(|&(i, _)| i).filter(|&i| i != 0));
+        self.right_filtered_indices = if let Some(wc_idx) = wildcard_idx {
+            let mut indices = vec![wc_idx]; // Always include `*` at the top
+            indices.extend(results.into_iter().map(|(i, _)| i).filter(|&i| i != wc_idx));
             indices
         } else {
             results.into_iter().map(|(i, _)| i).collect()
@@ -918,6 +918,36 @@ mod tests {
             .collect();
         assert!(filtered_names.contains(&"SalesReport"));
         assert!(!filtered_names.contains(&"*"));
+    }
+
+    #[test]
+    fn right_search_always_shows_wildcard_regardless_of_position() {
+        // Inject components with `*` NOT at index 0, bypassing build_component_list.
+        // This verifies that apply_right_fuzzy_filter does not rely on `*` being at index 0.
+        let mut app = AppState::new(sample_types());
+        app.component_cache.insert(
+            "ApexClass".to_string(),
+            ComponentLoadState::Loaded(vec!["Foo".to_string(), "*".to_string(), "Bar".to_string()]),
+        );
+        app.rebuild_right_filtered_indices();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('B'); // matches "Bar"; "*" would not match fuzzy
+
+        let components = app.highlighted_components().unwrap().clone();
+        let filtered_names: Vec<&str> = app
+            .right_filtered_indices
+            .iter()
+            .filter_map(|&i| components.get(i).map(|s| s.as_str()))
+            .collect();
+        assert!(
+            filtered_names.contains(&"*"),
+            "Wildcard should be shown even when not at index 0: {filtered_names:?}"
+        );
+        assert_eq!(
+            filtered_names[0], "*",
+            "Wildcard should be first in results"
+        );
     }
 
     #[test]
