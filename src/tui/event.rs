@@ -21,7 +21,7 @@ pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
     }
 
     // Search mode
-    if app.is_searching {
+    if app.searching_pane.is_some() {
         return handle_search_key(app, key);
     }
 
@@ -51,7 +51,7 @@ pub(crate) fn handle_key_event(app: &mut AppState, key: KeyEvent) -> Action {
             app.focus_right();
             maybe_load_components(app)
         }
-        KeyCode::Char('/') if app.focus == FocusPane::Left => {
+        KeyCode::Char('/') => {
             app.start_search();
             Action::None
         }
@@ -318,15 +318,38 @@ mod tests {
         let mut app = AppState::new(sample_types());
         let action = handle_key_event(&mut app, key(KeyCode::Char('/')));
         assert_eq!(action, Action::None);
-        assert!(app.is_searching);
+        assert_eq!(app.searching_pane, Some(FocusPane::Left));
     }
 
     #[test]
-    fn slash_ignored_in_right_pane() {
+    fn slash_starts_left_search_when_focus_left_even_if_right_loaded() {
+        // Verifies that the guard in start_search() routes correctly:
+        // Left focus always starts left search, regardless of can_search_right().
+        let mut app = app_with_components();
+        assert_eq!(app.focus, FocusPane::Left);
+        assert!(app.can_search_right(), "Precondition: right pane is loaded");
+        handle_key_event(&mut app, key(KeyCode::Char('/')));
+        assert_eq!(
+            app.searching_pane,
+            Some(FocusPane::Left),
+            "Left focus should always start left search"
+        );
+    }
+
+    #[test]
+    fn slash_starts_right_search_when_loaded() {
         let mut app = app_with_components();
         app.focus = FocusPane::Right;
         handle_key_event(&mut app, key(KeyCode::Char('/')));
-        assert!(!app.is_searching);
+        assert_eq!(app.searching_pane, Some(FocusPane::Right));
+    }
+
+    #[test]
+    fn slash_ignored_in_right_pane_when_not_loaded() {
+        let mut app = AppState::new(sample_types());
+        app.focus = FocusPane::Right;
+        handle_key_event(&mut app, key(KeyCode::Char('/')));
+        assert!(app.searching_pane.is_none());
     }
 
     #[test]
@@ -352,7 +375,7 @@ mod tests {
         let mut app = AppState::new(sample_types());
         app.start_search();
         handle_key_event(&mut app, key(KeyCode::Esc));
-        assert!(!app.is_searching);
+        assert!(app.searching_pane.is_none());
         assert!(!app.cancelled, "Esc in search mode should not cancel TUI");
     }
 
@@ -361,7 +384,7 @@ mod tests {
         let mut app = AppState::new(sample_types());
         app.start_search();
         let action = handle_key_event(&mut app, key(KeyCode::Enter));
-        assert!(!app.is_searching);
+        assert!(app.searching_pane.is_none());
         // Should potentially trigger component loading
         assert!(matches!(action, Action::None | Action::LoadComponents(_)));
     }
@@ -373,5 +396,20 @@ mod tests {
         let action = handle_key_event(&mut app, ctrl_c());
         assert_eq!(action, Action::Cancel);
         assert!(app.cancelled);
+    }
+
+    // -- Right pane search via key events --
+
+    #[test]
+    fn right_search_chars_update_right_query() {
+        let mut app = app_with_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        handle_key_event(&mut app, key(KeyCode::Char('F')));
+        assert_eq!(app.right_search_query, "F");
+        assert!(
+            app.search_query.is_empty(),
+            "Left query should be untouched"
+        );
     }
 }
