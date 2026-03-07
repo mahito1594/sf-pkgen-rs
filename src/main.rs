@@ -214,13 +214,11 @@ mod tests {
         // metadata_types is empty so run_generate returns NoMetadataTypes
         // before reaching run_tui (which would require /dev/tty).
         let args = make_args(Some("62.0"), Some("out.xml"));
-        let result = crate::run_generate(&client, &args);
-        match result {
-            Err(AppError::ApiVersionError { .. }) => {
-                panic!("get_org_info should not have been called when api_version is specified")
-            }
-            _ => {} // NoMetadataTypes or any non-ApiVersionError is fine
-        }
+        let err = crate::run_generate(&client, &args).unwrap_err();
+        assert!(
+            matches!(err, AppError::NoMetadataTypes),
+            "expected NoMetadataTypes but got: {err}"
+        );
     }
 
     #[test]
