@@ -22,6 +22,8 @@ pub(crate) fn draw(frame: &mut Frame, app: &AppState) {
 fn draw_left_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rect) {
     let title = if app.searching_pane == Some(FocusPane::Left) {
         format!("Metadata Types [/{}]", app.search_query)
+    } else if !app.search_query.is_empty() {
+        format!("Metadata Types [{}]", app.search_query)
     } else {
         "Metadata Types".to_string()
     };
@@ -72,6 +74,8 @@ fn draw_right_pane(frame: &mut Frame, app: &AppState, area: ratatui::layout::Rec
 
     let title = if app.searching_pane == Some(FocusPane::Right) {
         format!("{base_title} [/{}]", app.right_search_query)
+    } else if !app.right_search_query.is_empty() {
+        format!("{base_title} [{}]", app.right_search_query)
     } else {
         base_title
     };
@@ -374,6 +378,48 @@ mod tests {
         assert!(
             output.contains("[/F]"),
             "Should show search query in right pane title: {output}"
+        );
+    }
+
+    #[test]
+    fn renders_left_pane_filter_keyword_after_search() {
+        let mut app = AppState::new(sample_types());
+        app.start_search();
+        app.update_search('A');
+        app.end_search();
+        let output = render_to_string(&app, 80, 10);
+        assert!(
+            output.contains("[A]"),
+            "Should show filter keyword without slash after search: {output}"
+        );
+        assert!(
+            !output.contains("[/A]"),
+            "Should not show slash prefix after ending search: {output}"
+        );
+    }
+
+    #[test]
+    fn renders_right_pane_filter_keyword_after_search() {
+        let mut app = AppState::new(sample_types());
+        app.set_components(
+            "ApexClass",
+            Ok(AppState::build_component_list(
+                "ApexClass",
+                vec!["Foo".to_string()],
+            )),
+        );
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('F');
+        app.end_search();
+        let output = render_to_string(&app, 80, 10);
+        assert!(
+            output.contains("[F]"),
+            "Should show filter keyword without slash after search: {output}"
+        );
+        assert!(
+            !output.contains("[/F]"),
+            "Should not show slash prefix after ending search: {output}"
         );
     }
 
