@@ -207,22 +207,19 @@ mod tests {
         let client = MockSfClient {
             check_sf_ok: true,
             api_version: None, // get_org_info would fail if called
-            metadata_types: Some(vec![MetadataType {
-                xml_name: "ApexClass".to_string(),
-            }]),
+            metadata_types: Some(vec![]),
             components: None,
         };
         // api_version specified, so get_org_info should be skipped.
-        // The function will proceed past org_info to TUI, which will fail
-        // because there's no /dev/tty in test environment. That's fine —
-        // we just verify it doesn't return ApiVersionError.
+        // metadata_types is empty so run_generate returns NoMetadataTypes
+        // before reaching run_tui (which would require /dev/tty).
         let args = make_args(Some("62.0"), Some("out.xml"));
         let result = crate::run_generate(&client, &args);
         match result {
             Err(AppError::ApiVersionError { .. }) => {
                 panic!("get_org_info should not have been called when api_version is specified")
             }
-            _ => {} // Any other result (including IoError from TUI) is fine
+            _ => {} // NoMetadataTypes or any non-ApiVersionError is fine
         }
     }
 
