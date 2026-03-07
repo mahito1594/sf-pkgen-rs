@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "timezone": "Asia/Tokyo",
+  "schedule": ["before 9am on saturday"],
+  "ignorePaths": [".github/workflows/release.yml"],
+  "packageRules": [
+    {
+      "matchUpdateType": "patch",
+      "automerge": true,
+      "automergeStrategy": "squash"
+    },
+    {
+      "matchUpdateType": "minor",
+      "groupName": "all minor dependency updates"
+    }
+  ]
+}
