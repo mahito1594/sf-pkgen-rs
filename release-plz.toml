@@ -1,0 +1,7 @@
+[workspace]
+git_release_enable = false  # GitHub Release は cargo-dist に任せる
+git_tag_enable = true       # タグは作成する（cargo-dist のトリガー）
+publish = false             # crates.io には publish しない
+semver_check = false        # cargo-semver-checks は使用しない
+git_only = true             # crates.io ではなく git タグからバージョンを検出する
+release_always = false      # 最新コミットでバージョン変更があった場合のみリリースする

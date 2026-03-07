@@ -9,7 +9,11 @@ This software incorporates components from the projects listed below.
 
 Used by:
 {{#each used_by}}
+{{#if (eq crate.name "sf-pkgen")}}
+  - {{crate.name}}
+{{else}}
   - {{crate.name}} {{crate.version}}
+{{/if}}
 {{/each}}
 
 {{{text}}}
