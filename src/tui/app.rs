@@ -187,13 +187,11 @@ impl AppState {
         match self.focus {
             FocusPane::Left => {
                 self.searching_pane = Some(FocusPane::Left);
-                self.search_query.clear();
                 self.apply_fuzzy_filter();
             }
             FocusPane::Right => {
                 if self.can_search_right() {
                     self.searching_pane = Some(FocusPane::Right);
-                    self.right_search_query.clear();
                     self.apply_right_fuzzy_filter();
                 }
             }
@@ -1095,5 +1093,39 @@ mod tests {
 
         // toggle_selection should be safe (no crash)
         app.toggle_selection();
+    }
+
+    #[test]
+    fn start_search_preserves_left_query() {
+        let mut app = AppState::new(sample_types());
+        app.focus = FocusPane::Left;
+        app.start_search();
+        app.update_search('a');
+        app.update_search('p');
+        app.end_search();
+
+        assert_eq!(app.search_query, "ap");
+
+        // Re-enter search mode: query should be preserved
+        app.start_search();
+        assert_eq!(app.search_query, "ap");
+        assert!(app.searching_pane.is_some());
+    }
+
+    #[test]
+    fn start_search_preserves_right_query() {
+        let mut app = app_with_loaded_components();
+        app.focus = FocusPane::Right;
+        app.start_search();
+        app.update_search('c');
+        app.update_search('o');
+        app.end_search();
+
+        assert_eq!(app.right_search_query, "co");
+
+        // Re-enter search mode: query should be preserved
+        app.start_search();
+        assert_eq!(app.right_search_query, "co");
+        assert!(app.searching_pane.is_some());
     }
 }
