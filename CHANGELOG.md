@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.1...v0.4.2) - 2026-03-07
+
+### Fixed
+
+- prevent intermittent test abort caused by PanicHookGuard race condition ([#16](https://github.com/mahito1594/sf-pkgen-rs/pull/16))
+
+### Other
+
+- update TUI keybindings to reflect right pane fuzzy search ([#23](https://github.com/mahito1594/sf-pkgen-rs/pull/23))
+- fix wrong settings ([#22](https://github.com/mahito1594/sf-pkgen-rs/pull/22))
+- add renovate.json ([#21](https://github.com/mahito1594/sf-pkgen-rs/pull/21))
+- add coverage job with cargo-llvm-cov ([#18](https://github.com/mahito1594/sf-pkgen-rs/pull/18))
+
 ## [0.4.1](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.0...v0.4.1) - 2026-03-07
 
 ### Added
