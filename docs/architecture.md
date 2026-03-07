@@ -166,6 +166,8 @@ enum Action {
 
 `wildcard.rs` のハードコードリスト（`FOLDER_BASED_TYPES`）でフォルダベース型を判定し、該当する型には `*` エントリを表示しない。
 
+Salesforce の仕様変更でフォルダベース型が増減した場合は `src/wildcard.rs` の `FOLDER_BASED_TYPES` 定数を更新する。参照元: `source-deploy-retrieve` の `metadataRegistry.json`（`folderType` プロパティを持つ型が対象）。
+
 ## シグナルハンドリング
 
 `signal.rs` が Ctrl+C ハンドリングを管理する。

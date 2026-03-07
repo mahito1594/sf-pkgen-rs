@@ -73,7 +73,7 @@ sf-pkgen generate -a 62.0 -f package.xml
 | `l` / `Right` | Focus right pane |
 | `Tab` | Toggle pane focus |
 | `Space` | Select / deselect component (right pane) |
-| `/` | Start fuzzy search (left pane) |
+| `/` | Start fuzzy search in the focused pane |
 | `Enter` | Confirm selection |
 | `Esc` | Cancel |
 | `Ctrl+C` | Cancel |
@@ -82,11 +82,15 @@ sf-pkgen generate -a 62.0 -f package.xml
 
 | Key | Action |
 |-----|--------|
-| Type characters | Filter metadata types |
+| Type characters | Filter items in the focused pane |
 | `Backspace` | Delete last character |
 | `Enter` | Confirm search and return to normal mode |
 | `Esc` | Cancel search |
 | `Ctrl+C` | Cancel TUI |
+
+> **Note:** After exiting search mode, the active filter keyword is shown in the pane title as `[keyword]`.
+> The search query is preserved when re-entering search mode with `/`.
+> Switching the selected metadata type in the left pane resets the right pane's search state.
 
 ### Exit Codes
 
