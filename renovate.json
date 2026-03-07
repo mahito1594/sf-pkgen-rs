@@ -8,12 +8,12 @@
   "ignorePaths": [".github/workflows/release.yml"],
   "packageRules": [
     {
-      "matchUpdateType": "patch",
+      "matchUpdateTypes": ["patch"],
       "automerge": true,
       "automergeStrategy": "squash"
     },
     {
-      "matchUpdateType": "minor",
+      "matchUpdateTypes": ["minor"],
       "groupName": "all minor dependency updates"
     }
   ]
