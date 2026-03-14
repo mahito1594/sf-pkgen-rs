@@ -7,7 +7,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - num_threads 0.1.7
+  - num_threads
 
 
                                  Apache License
@@ -217,7 +217,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - num-conv 0.2.0
+  - num-conv
 
 
                                  Apache License
@@ -427,7 +427,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - powerfmt 0.2.0
+  - powerfmt
 
 
                                  Apache License
@@ -637,7 +637,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - deranged 0.5.6
+  - deranged
 
 
                                  Apache License
@@ -847,7 +847,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - static_assertions 1.1.0
+  - static_assertions
 
 
                                  Apache License
@@ -1057,8 +1057,8 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - windows-link 0.2.1
-  - windows-sys 0.61.2
+  - windows-link
+  - windows-sys
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1267,7 +1267,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - line-clipping 0.3.5
+  - line-clipping
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1476,7 +1476,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - kasuari 0.4.11
+  - kasuari
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1685,7 +1685,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - winapi 0.3.9
+  - winapi
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1894,18 +1894,18 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - anstream 0.6.21
-  - anstyle-parse 0.2.7
-  - anstyle-query 1.1.5
-  - anstyle-wincon 3.0.11
-  - anstyle 1.0.13
-  - clap 4.5.58
-  - clap_builder 4.5.58
-  - clap_derive 4.5.55
-  - clap_lex 1.0.0
-  - colorchoice 1.0.4
-  - is_terminal_polyfill 1.70.2
-  - once_cell_polyfill 1.70.2
+  - anstream
+  - anstyle-parse
+  - anstyle-query
+  - anstyle-wincon
+  - anstyle
+  - clap
+  - clap_builder
+  - clap_derive
+  - clap_lex
+  - colorchoice
+  - is_terminal_polyfill
+  - once_cell_polyfill
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2115,7 +2115,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - ctrlc 3.5.2
+  - ctrlc
 
                               Apache License
                         Version 2.0, January 2004
@@ -2324,37 +2324,37 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - bitflags 2.11.0
-  - cfg-if 1.0.4
-  - either 1.15.0
-  - equivalent 1.0.2
-  - errno 0.3.14
-  - fastrand 2.3.0
-  - hashbrown 0.16.1
-  - heck 0.5.0
-  - itertools 0.14.0
-  - linux-raw-sys 0.11.0
-  - lock_api 0.4.14
-  - log 0.4.29
-  - once_cell 1.21.3
-  - parking_lot 0.12.5
-  - parking_lot_core 0.9.12
-  - regex-automata 0.4.14
-  - regex-syntax 0.8.9
-  - regex 1.12.3
-  - rustc_version 0.4.1
-  - rustix 1.1.3
-  - scopeguard 1.2.0
-  - signal-hook-mio 0.2.5
-  - signal-hook-registry 1.4.8
-  - signal-hook 0.3.18
-  - smallvec 1.15.1
-  - tempfile 3.25.0
-  - unicode-segmentation 1.12.0
-  - unicode-truncate 2.0.1
-  - unicode-width 0.2.2
-  - wasi 0.11.1+wasi-snapshot-preview1
-  - wit-bindgen 0.51.0
+  - bitflags
+  - cfg-if
+  - either
+  - equivalent
+  - errno
+  - fastrand
+  - hashbrown
+  - heck
+  - itertools
+  - linux-raw-sys
+  - lock_api
+  - log
+  - once_cell
+  - parking_lot
+  - parking_lot_core
+  - regex-automata
+  - regex-syntax
+  - regex
+  - rustc_version
+  - rustix
+  - scopeguard
+  - signal-hook-mio
+  - signal-hook-registry
+  - signal-hook
+  - smallvec
+  - tempfile
+  - unicode-segmentation
+  - unicode-truncate
+  - unicode-width
+  - wasi
+  - wit-bindgen
 
                               Apache License
                         Version 2.0, January 2004
@@ -2563,7 +2563,7 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - getrandom 0.4.1
+  - getrandom
 
                               Apache License
                         Version 2.0, January 2004
@@ -2772,35 +2772,35 @@ Apache License 2.0
 ================================================================================
 
 Used by:
-  - allocator-api2 0.2.21
-  - dispatch2 0.3.0
-  - document-features 0.2.12
-  - ident_case 1.0.1
-  - indoc 2.0.7
-  - itoa 1.0.17
-  - libc 0.2.180
-  - litrs 1.0.0
-  - proc-macro2 1.0.106
-  - quote 1.0.44
-  - r-efi 5.3.0
-  - rustversion 1.0.22
-  - ryu 1.0.23
-  - semver 1.0.27
-  - serde 1.0.228
-  - serde_core 1.0.228
-  - serde_derive 1.0.228
-  - serde_json 1.0.149
-  - syn 2.0.115
-  - thiserror-impl 2.0.18
-  - thiserror 2.0.18
-  - time-core 0.1.8
-  - time 0.3.47
-  - unicode-ident 1.0.23
-  - utf8parse 0.2.2
-  - wasip2 1.0.2+wasi-0.2.9
-  - wasip3 0.4.0+wasi-0.3.0-rc-2026-01-06
-  - winapi-i686-pc-windows-gnu 0.4.0
-  - winapi-x86_64-pc-windows-gnu 0.4.0
+  - allocator-api2
+  - dispatch2
+  - document-features
+  - ident_case
+  - indoc
+  - itoa
+  - libc
+  - litrs
+  - proc-macro2
+  - quote
+  - r-efi
+  - rustversion
+  - ryu
+  - semver
+  - serde
+  - serde_core
+  - serde_derive
+  - serde_json
+  - syn
+  - thiserror-impl
+  - thiserror
+  - time-core
+  - time
+  - unicode-ident
+  - utf8parse
+  - wasip2
+  - wasip3
+  - winapi-i686-pc-windows-gnu
+  - winapi-x86_64-pc-windows-gnu
 
 Apache License
 Version 2.0, January 2004
@@ -2881,7 +2881,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - instability 0.3.11
+  - instability
 
 # MIT License
 
@@ -2911,7 +2911,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - mio 1.1.1
+  - mio
 
 Copyright (c) 2014 Carl Lerche and other MIO contributors
 
@@ -2938,7 +2938,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - redox_syscall 0.5.18
+  - redox_syscall
 
 Copyright (c) 2017 Redox OS Developers
 
@@ -2968,7 +2968,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - ratatui-macros 0.7.0
+  - ratatui-macros
 
 Copyright (c) 2024 Dheepak Krishnamurthy
 Copyright (c) 2025 The Ratatui Developers
@@ -2996,7 +2996,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - lru 0.16.3
+  - lru
 
 MIT License
 
@@ -3024,9 +3024,9 @@ MIT License
 ================================================================================
 
 Used by:
-  - darling 0.23.0
-  - darling_core 0.23.0
-  - darling_macro 0.23.0
+  - darling
+  - darling_core
+  - darling_macro
 
 MIT License
 
@@ -3055,8 +3055,8 @@ MIT License
 ================================================================================
 
 Used by:
-  - strum 0.27.2
-  - strum_macros 0.27.2
+  - strum
+  - strum_macros
 
 MIT License
 
@@ -3085,7 +3085,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - cfg_aliases 0.2.1
+  - cfg_aliases
 
 MIT License
 
@@ -3102,7 +3102,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - compact_str 0.9.0
+  - compact_str
 
 MIT License
 
@@ -3131,7 +3131,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - castaway 0.2.4
+  - castaway
 
 MIT License
 
@@ -3160,7 +3160,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - convert_case 0.10.0
+  - convert_case
 
 MIT License
 
@@ -3217,13 +3217,13 @@ MIT License
 ================================================================================
 
 Used by:
-  - block2 0.6.2
-  - objc2-encode 4.1.0
-  - objc2 0.6.3
-  - ratatui-core 0.1.0
-  - ratatui-crossterm 0.1.0
-  - ratatui-widgets 0.3.0
-  - ratatui 0.30.0
+  - block2
+  - objc2-encode
+  - objc2
+  - ratatui-core
+  - ratatui-crossterm
+  - ratatui-widgets
+  - ratatui
 
 MIT License
 
@@ -3249,8 +3249,8 @@ MIT License
 ================================================================================
 
 Used by:
-  - crossterm 0.29.0
-  - crossterm_winapi 0.9.1
+  - crossterm
+  - crossterm_winapi
 
 MIT License
 
@@ -3279,7 +3279,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - zmij 1.0.21
+  - zmij
 
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
@@ -3310,8 +3310,8 @@ MIT License
 ================================================================================
 
 Used by:
-  - aho-corasick 1.1.4
-  - memchr 2.8.0
+  - aho-corasick
+  - memchr
 
 The MIT License (MIT)
 
@@ -3340,7 +3340,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - nix 0.31.1
+  - nix
 
 The MIT License (MIT)
 
@@ -3369,7 +3369,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - strsim 0.11.1
+  - strsim
 
 The MIT License (MIT)
 
@@ -3400,8 +3400,8 @@ MIT License
 ================================================================================
 
 Used by:
-  - derive_more-impl 2.1.1
-  - derive_more 2.1.1
+  - derive_more-impl
+  - derive_more
 
 The MIT License (MIT)
 
@@ -3430,7 +3430,7 @@ MIT License
 ================================================================================
 
 Used by:
-  - quick-xml 0.39.0
+  - quick-xml
 
 The MIT License (MIT)
 
@@ -3461,7 +3461,7 @@ Mozilla Public License 2.0
 ================================================================================
 
 Used by:
-  - nucleo-matcher 0.3.1
+  - nucleo-matcher
 
 Mozilla Public License Version 2.0
 ==================================
@@ -3842,7 +3842,7 @@ Unicode License v3
 ================================================================================
 
 Used by:
-  - unicode-ident 1.0.23
+  - unicode-ident
 
 UNICODE LICENSE V3
 
@@ -3889,7 +3889,7 @@ zlib License
 ================================================================================
 
 Used by:
-  - foldhash 0.2.0
+  - foldhash
 
 Copyright (c) 2024 Orson Peters
 
