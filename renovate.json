@@ -4,7 +4,7 @@
     "config:best-practices"
   ],
   "timezone": "Asia/Tokyo",
-  "schedule": ["before 9am on saturday"],
+  "schedule": ["every weekend"],
   "ignorePaths": [".github/workflows/release.yml"],
   "packageRules": [
     {
