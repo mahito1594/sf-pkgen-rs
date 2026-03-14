@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.2...v0.4.3) - 2026-03-14
+
+### Other
+
+- *(deps)* lock file maintenance ([#35](https://github.com/mahito1594/sf-pkgen-rs/pull/35))
+- *(deps)* update all minor dependency updates ([#33](https://github.com/mahito1594/sf-pkgen-rs/pull/33))
+- *(deps)* update rust crate quick-xml to v0.39.2 ([#31](https://github.com/mahito1594/sf-pkgen-rs/pull/31))
+- remove version from NOTICE template to stabilize against dep updates ([#36](https://github.com/mahito1594/sf-pkgen-rs/pull/36))
+- *(deps)* update actions/upload-artifact action to v7 ([#34](https://github.com/mahito1594/sf-pkgen-rs/pull/34))
+- *(deps)* pin rust crate tempfile to v3.25.0 ([#29](https://github.com/mahito1594/sf-pkgen-rs/pull/29))
+- *(deps)* update taiki-e/install-action action to v2.68.29 ([#32](https://github.com/mahito1594/sf-pkgen-rs/pull/32))
+- *(deps)* update release-plz/action action to v0.5.128 ([#30](https://github.com/mahito1594/sf-pkgen-rs/pull/30))
+- change renovate schedule to every weekend ([#27](https://github.com/mahito1594/sf-pkgen-rs/pull/27))
+
 ## [0.4.2](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.1...v0.4.2) - 2026-03-07
 
 ### Fixed
