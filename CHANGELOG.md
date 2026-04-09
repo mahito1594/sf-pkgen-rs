@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.0.0...v1.0.1) - 2026-04-09
+
+### Other
+
+- *(deps)* lock file maintenance ([#44](https://github.com/mahito1594/sf-pkgen-rs/pull/44))
+- *(deps)* update taiki-e/install-action action to v2.75.1 ([#43](https://github.com/mahito1594/sf-pkgen-rs/pull/43))
+- *(deps)* update taiki-e/install-action action to v2.71.3 ([#42](https://github.com/mahito1594/sf-pkgen-rs/pull/42))
+- *(deps)* pin dtolnay/rust-toolchain action to 29eef33 ([#39](https://github.com/mahito1594/sf-pkgen-rs/pull/39))
+- *(deps)* update actions/cache action to v5.0.4 ([#40](https://github.com/mahito1594/sf-pkgen-rs/pull/40))
+
 ## [1.0.0](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.2...v1.0.0) - 2026-03-14
 
 ### Other
