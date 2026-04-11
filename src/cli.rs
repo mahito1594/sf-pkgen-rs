@@ -28,6 +28,10 @@ pub(crate) struct GenerateArgs {
     /// Output file path
     #[arg(short = 'f', long = "output-file")]
     pub(crate) output_file: Option<PathBuf>,
+
+    /// Inherit selections from an existing package.xml
+    #[arg(long = "inherit")]
+    pub(crate) inherit: Option<PathBuf>,
 }
 
 #[cfg(test)]
