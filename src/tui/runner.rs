@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::panic::{self, PanicHookInfo};
 use std::sync::mpsc;
 use std::time::Duration;
@@ -74,6 +74,7 @@ pub(crate) fn run_tui(
     sf_client: &dyn SfClient,
     target_org: Option<&str>,
     api_version: &str,
+    initial_selections: HashMap<String, HashSet<String>>,
 ) -> Result<BTreeMap<String, Vec<String>>, AppError> {
     let mut tty = open_tty()?;
 
@@ -100,6 +101,7 @@ pub(crate) fn run_tui(
     })?;
 
     let mut app = AppState::new(metadata_types);
+    app.selections = initial_selections;
 
     // Initial component load for the first highlighted type
     if let Some(type_name) = app.request_components_if_needed() {

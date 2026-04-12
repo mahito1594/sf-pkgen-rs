@@ -25,6 +25,9 @@ pub(crate) enum AppError {
     #[error("{message}")]
     OutputPathError { message: String },
 
+    #[error("Failed to parse {path}: {message}")]
+    InheritParseError { path: String, message: String },
+
     #[error("{0}")]
     IoError(#[from] std::io::Error),
 
@@ -69,6 +72,10 @@ mod tests {
                 message: "path error".to_string(),
             },
             AppError::IoError(std::io::Error::new(std::io::ErrorKind::NotFound, "test")),
+            AppError::InheritParseError {
+                path: "/some/path.xml".to_string(),
+                message: "parse failed".to_string(),
+            },
         ];
         for error in &cases {
             assert_eq!(error.exit_code(), 1, "Failed for: {error:?}");

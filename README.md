@@ -47,6 +47,7 @@ sf-pkgen generate [OPTIONS]
 | `--target-org <ALIAS\|USERNAME>` | `-o` | Target org (defaults to sf CLI default org) |
 | `--api-version <VERSION>` | `-a` | API version, e.g. `"62.0"` (defaults to sf CLI default) |
 | `--output-file <PATH>` | `-f` | Output file path (prompted if omitted) |
+| `--inherit <PATH>` |  | Start with selections inherited from an existing `package.xml` |
 
 ### Example
 
@@ -59,6 +60,9 @@ sf-pkgen generate -o my-sandbox -f manifest/package.xml
 
 # Specify API version explicitly
 sf-pkgen generate -a 62.0 -f package.xml
+
+# Start from an existing package.xml and adjust selections in the TUI
+sf-pkgen generate --inherit manifest/package.xml -f package.xml
 ```
 
 ### TUI Keybindings
