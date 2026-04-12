@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.0.0...v1.1.0) - 2026-04-12
+
+### Added
+
+- support inheriting package selections ([#49](https://github.com/mahito1594/sf-pkgen-rs/pull/49))
+
+### Other
+
+- *(deps)* update taiki-e/install-action action to v2.75.7 ([#50](https://github.com/mahito1594/sf-pkgen-rs/pull/50))
+- *(deps)* update taiki-e/install-action action to v2.75.5 ([#48](https://github.com/mahito1594/sf-pkgen-rs/pull/48))
+- *(deps)* update taiki-e/install-action action to v2.75.4 ([#46](https://github.com/mahito1594/sf-pkgen-rs/pull/46))
+- *(deps)* update actions/upload-artifact action to v7.0.1 ([#45](https://github.com/mahito1594/sf-pkgen-rs/pull/45))
+- *(deps)* lock file maintenance ([#44](https://github.com/mahito1594/sf-pkgen-rs/pull/44))
+- *(deps)* update taiki-e/install-action action to v2.75.1 ([#43](https://github.com/mahito1594/sf-pkgen-rs/pull/43))
+- *(deps)* update taiki-e/install-action action to v2.71.3 ([#42](https://github.com/mahito1594/sf-pkgen-rs/pull/42))
+- *(deps)* pin dtolnay/rust-toolchain action to 29eef33 ([#39](https://github.com/mahito1594/sf-pkgen-rs/pull/39))
+- *(deps)* update actions/cache action to v5.0.4 ([#40](https://github.com/mahito1594/sf-pkgen-rs/pull/40))
+
 ## [1.0.0](https://github.com/mahito1594/sf-pkgen-rs/compare/v0.4.2...v1.0.0) - 2026-03-14
 
 ### Other
