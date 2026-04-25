@@ -2144,6 +2144,8 @@ Used by:
   - unicode-truncate
   - unicode-width
   - wasi
+  - wasip2
+  - wit-bindgen
   - wit-bindgen
 
                               Apache License
@@ -2588,7 +2590,6 @@ Used by:
   - time
   - unicode-ident
   - utf8parse
-  - wasip2
   - wasip3
   - winapi-i686-pc-windows-gnu
   - winapi-x86_64-pc-windows-gnu
