@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.0...v1.1.1) - 2026-04-25
+
+### Other
+
+- *(deps)* update taiki-e/install-action action to v2.75.22 ([#61](https://github.com/mahito1594/sf-pkgen-rs/pull/61))
+- *(deps)* lock file maintenance ([#59](https://github.com/mahito1594/sf-pkgen-rs/pull/59))
+- *(deps)* update taiki-e/install-action action to v2.75.21 ([#60](https://github.com/mahito1594/sf-pkgen-rs/pull/60))
+- *(deps)* update taiki-e/install-action action to v2.75.18 ([#58](https://github.com/mahito1594/sf-pkgen-rs/pull/58))
+- *(deps)* update taiki-e/install-action action to v2.75.17 ([#57](https://github.com/mahito1594/sf-pkgen-rs/pull/57))
+- *(deps)* update taiki-e/install-action action to v2.75.16 ([#56](https://github.com/mahito1594/sf-pkgen-rs/pull/56))
+- *(deps)* update rust crate clap to v4.6.1 ([#55](https://github.com/mahito1594/sf-pkgen-rs/pull/55))
+- *(deps)* update actions/cache action to v5.0.5 ([#54](https://github.com/mahito1594/sf-pkgen-rs/pull/54))
+- *(deps)* lock file maintenance ([#52](https://github.com/mahito1594/sf-pkgen-rs/pull/52))
+
 ## [1.1.0](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.0.0...v1.1.0) - 2026-04-12
 
 ### Added
