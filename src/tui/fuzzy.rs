@@ -29,7 +29,7 @@ pub(crate) fn fuzzy_filter(query: &str, items: &[String]) -> Vec<(usize, u16)> {
         })
         .collect();
 
-    results.sort_by(|a, b| b.1.cmp(&a.1));
+    results.sort_by_key(|k| std::cmp::Reverse(k.1));
     results
 }
 
