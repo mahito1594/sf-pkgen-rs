@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.1...v1.1.2) - 2026-06-13
+
+### Other
+
+- *(deps)* lock file maintenance ([#90](https://github.com/mahito1594/sf-pkgen-rs/pull/90))
+- *(deps)* update taiki-e/install-action action to v2.81.10 ([#93](https://github.com/mahito1594/sf-pkgen-rs/pull/93))
+- *(deps)* update rust crate regex to v1.12.4 ([#92](https://github.com/mahito1594/sf-pkgen-rs/pull/92))
+- *(deps)* update release-plz/action action to v0.5.130 ([#91](https://github.com/mahito1594/sf-pkgen-rs/pull/91))
+- *(deps)* update taiki-e/install-action action to v2.81.7 ([#89](https://github.com/mahito1594/sf-pkgen-rs/pull/89))
+- *(deps)* update rust crate ratatui to v0.30.1 ([#88](https://github.com/mahito1594/sf-pkgen-rs/pull/88))
+- *(deps)* lock file maintenance ([#86](https://github.com/mahito1594/sf-pkgen-rs/pull/86))
+- *(deps)* update all minor dependency updates to v2.81.6 ([#85](https://github.com/mahito1594/sf-pkgen-rs/pull/85))
+- *(deps)* update actions/checkout action to v6.0.3 ([#87](https://github.com/mahito1594/sf-pkgen-rs/pull/87))
+- *(deps)* update rust to 1.96 ([#83](https://github.com/mahito1594/sf-pkgen-rs/pull/83))
+- *(deps)* update taiki-e/install-action action to v2.79.15 ([#84](https://github.com/mahito1594/sf-pkgen-rs/pull/84))
+- *(deps)* update taiki-e/install-action action to v2.79.14 ([#82](https://github.com/mahito1594/sf-pkgen-rs/pull/82))
+- *(deps)* lock file maintenance ([#81](https://github.com/mahito1594/sf-pkgen-rs/pull/81))
+- *(deps)* update taiki-e/install-action action to v2.79.6 ([#80](https://github.com/mahito1594/sf-pkgen-rs/pull/80))
+- *(deps)* update rust to 1.95 ([#78](https://github.com/mahito1594/sf-pkgen-rs/pull/78))
+- *(deps)* update taiki-e/install-action action to v2.79.5 ([#79](https://github.com/mahito1594/sf-pkgen-rs/pull/79))
+- *(deps)* update rust crate serde_json to v1.0.150 ([#75](https://github.com/mahito1594/sf-pkgen-rs/pull/75))
+- *(deps)* update taiki-e/install-action action to v2.79.4 ([#76](https://github.com/mahito1594/sf-pkgen-rs/pull/76))
+
 ## [1.1.1](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.0...v1.1.1) - 2026-05-19
 
 ### Fixed
