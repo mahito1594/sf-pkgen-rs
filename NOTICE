@@ -2583,6 +2583,7 @@ Used by:
   - serde_derive
   - serde_json
   - syn
+  - syn
   - thiserror-impl
   - thiserror
   - time-core
