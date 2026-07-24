@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.1...v1.1.2) - 2026-07-24
+
+### Fixed
+
+- *(deps)* update rust crate quick-xml to 0.41.0 ([#106](https://github.com/mahito1594/sf-pkgen-rs/pull/106))
+
+### Other
+
+- *(deps)* update rust crate serde_json to v1.0.151 ([#120](https://github.com/mahito1594/sf-pkgen-rs/pull/120))
+- *(deps)* update actions/checkout action to v7.0.1 ([#119](https://github.com/mahito1594/sf-pkgen-rs/pull/119))
+- *(deps)* lock file maintenance ([#118](https://github.com/mahito1594/sf-pkgen-rs/pull/118))
+- *(deps)* update rust crate thiserror to v2.0.19 ([#117](https://github.com/mahito1594/sf-pkgen-rs/pull/117))
+- *(deps)* update rust crate serde to v1.0.229 ([#116](https://github.com/mahito1594/sf-pkgen-rs/pull/116))
+- *(deps)* update dtolnay/rust-toolchain digest to 4cda84d ([#111](https://github.com/mahito1594/sf-pkgen-rs/pull/111))
+- *(deps)* update taiki-e/install-action action to v2.83.4 ([#115](https://github.com/mahito1594/sf-pkgen-rs/pull/115))
+- *(deps)* update rust crate regex to v1.13.1 ([#114](https://github.com/mahito1594/sf-pkgen-rs/pull/114))
+- *(deps)* update rust crate clap to v4.6.2 ([#113](https://github.com/mahito1594/sf-pkgen-rs/pull/113))
+- *(deps)* update release-plz/action action to v0.5.131 ([#112](https://github.com/mahito1594/sf-pkgen-rs/pull/112))
+- *(deps)* lock file maintenance ([#110](https://github.com/mahito1594/sf-pkgen-rs/pull/110))
+- *(deps)* update taiki-e/install-action action to v2.83.2 ([#109](https://github.com/mahito1594/sf-pkgen-rs/pull/109))
+- *(deps)* update all minor dependency updates ([#108](https://github.com/mahito1594/sf-pkgen-rs/pull/108))
+- *(deps)* lock file maintenance ([#107](https://github.com/mahito1594/sf-pkgen-rs/pull/107))
+- *(deps)* update dtolnay/rust-toolchain digest to 4be7066 ([#104](https://github.com/mahito1594/sf-pkgen-rs/pull/104))
+- *(deps)* update taiki-e/install-action action to v2.82.8 ([#105](https://github.com/mahito1594/sf-pkgen-rs/pull/105))
+- *(deps)* lock file maintenance ([#99](https://github.com/mahito1594/sf-pkgen-rs/pull/99))
+- *(deps)* update actions/cache action to v6 ([#101](https://github.com/mahito1594/sf-pkgen-rs/pull/101))
+- *(deps)* update taiki-e/install-action action to v2.82.5 ([#102](https://github.com/mahito1594/sf-pkgen-rs/pull/102))
+- *(deps)* update taiki-e/install-action action to v2.82.4 ([#100](https://github.com/mahito1594/sf-pkgen-rs/pull/100))
+- *(deps)* update taiki-e/install-action action to v2.82.2 ([#98](https://github.com/mahito1594/sf-pkgen-rs/pull/98))
+- *(deps)* update actions/checkout action to v7 ([#97](https://github.com/mahito1594/sf-pkgen-rs/pull/97))
+- *(deps)* lock file maintenance ([#94](https://github.com/mahito1594/sf-pkgen-rs/pull/94))
+- *(deps)* update all minor dependency updates to v2.82.1 ([#96](https://github.com/mahito1594/sf-pkgen-rs/pull/96))
+- *(deps)* update rust crate ratatui to v0.30.2 ([#95](https://github.com/mahito1594/sf-pkgen-rs/pull/95))
+- *(deps)* lock file maintenance ([#90](https://github.com/mahito1594/sf-pkgen-rs/pull/90))
+- *(deps)* update taiki-e/install-action action to v2.81.10 ([#93](https://github.com/mahito1594/sf-pkgen-rs/pull/93))
+- *(deps)* update rust crate regex to v1.12.4 ([#92](https://github.com/mahito1594/sf-pkgen-rs/pull/92))
+- *(deps)* update release-plz/action action to v0.5.130 ([#91](https://github.com/mahito1594/sf-pkgen-rs/pull/91))
+- *(deps)* update taiki-e/install-action action to v2.81.7 ([#89](https://github.com/mahito1594/sf-pkgen-rs/pull/89))
+- *(deps)* update rust crate ratatui to v0.30.1 ([#88](https://github.com/mahito1594/sf-pkgen-rs/pull/88))
+- *(deps)* lock file maintenance ([#86](https://github.com/mahito1594/sf-pkgen-rs/pull/86))
+- *(deps)* update all minor dependency updates to v2.81.6 ([#85](https://github.com/mahito1594/sf-pkgen-rs/pull/85))
+- *(deps)* update actions/checkout action to v6.0.3 ([#87](https://github.com/mahito1594/sf-pkgen-rs/pull/87))
+- *(deps)* update rust to 1.96 ([#83](https://github.com/mahito1594/sf-pkgen-rs/pull/83))
+- *(deps)* update taiki-e/install-action action to v2.79.15 ([#84](https://github.com/mahito1594/sf-pkgen-rs/pull/84))
+- *(deps)* update taiki-e/install-action action to v2.79.14 ([#82](https://github.com/mahito1594/sf-pkgen-rs/pull/82))
+- *(deps)* lock file maintenance ([#81](https://github.com/mahito1594/sf-pkgen-rs/pull/81))
+- *(deps)* update taiki-e/install-action action to v2.79.6 ([#80](https://github.com/mahito1594/sf-pkgen-rs/pull/80))
+- *(deps)* update rust to 1.95 ([#78](https://github.com/mahito1594/sf-pkgen-rs/pull/78))
+- *(deps)* update taiki-e/install-action action to v2.79.5 ([#79](https://github.com/mahito1594/sf-pkgen-rs/pull/79))
+- *(deps)* update rust crate serde_json to v1.0.150 ([#75](https://github.com/mahito1594/sf-pkgen-rs/pull/75))
+- *(deps)* update taiki-e/install-action action to v2.79.4 ([#76](https://github.com/mahito1594/sf-pkgen-rs/pull/76))
+
 ## [1.1.1](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.0...v1.1.1) - 2026-05-19
 
 ### Fixed
