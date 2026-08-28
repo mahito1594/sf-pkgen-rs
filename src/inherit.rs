@@ -50,12 +50,7 @@ fn parse_xml_content(content: &str, path: &Path) -> Result<InheritedPackage, App
             Ok(Event::Start(e)) => {
                 depth += 1;
                 let local_name = e.local_name();
-                let tag = std::str::from_utf8(local_name.as_ref()).map_err(|err| {
-                    AppError::InheritParseError {
-                        path: path_str.clone(),
-                        message: format!("invalid UTF-8 in element name: {err}"),
-                    }
-                })?;
+                let tag = local_name.as_ref();
                 match tag {
                     "types" => {
                         in_types = true;
@@ -68,10 +63,7 @@ fn parse_xml_content(content: &str, path: &Path) -> Result<InheritedPackage, App
                 }
             }
             Ok(Event::Text(e)) => {
-                let decoded = e.decode().map_err(|err| AppError::InheritParseError {
-                    path: path_str.clone(),
-                    message: err.to_string(),
-                })?;
+                let decoded = e.xml10_content();
                 let text = unescape(&decoded)
                     .map_err(|err| AppError::InheritParseError {
                         path: path_str.clone(),
@@ -91,14 +83,7 @@ fn parse_xml_content(content: &str, path: &Path) -> Result<InheritedPackage, App
             }
             Ok(Event::End(e)) => {
                 depth -= 1;
-                let local_name = e.local_name();
-                let tag = std::str::from_utf8(local_name.as_ref()).map_err(|err| {
-                    AppError::InheritParseError {
-                        path: path_str.clone(),
-                        message: format!("invalid UTF-8 in element name: {err}"),
-                    }
-                })?;
-                if tag == "types" {
+                if e.local_name().as_ref() == "types" {
                     if let Some(name) = current_name.take() {
                         let members = normalize_members(std::mem::take(&mut current_members));
                         types
