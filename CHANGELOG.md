@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.2...v1.1.3) - 2026-09-12
+
+### Other
+
+- *(deps)* update taiki-e/install-action action to v2.87.12 ([#144](https://github.com/mahito1594/sf-pkgen-rs/pull/144))
+- *(deps)* update taiki-e/install-action action to v2.87.11 ([#143](https://github.com/mahito1594/sf-pkgen-rs/pull/143))
+- *(deps)* update release-plz/action action to v0.5.136 ([#142](https://github.com/mahito1594/sf-pkgen-rs/pull/142))
+- *(deps)* lock file maintenance ([#141](https://github.com/mahito1594/sf-pkgen-rs/pull/141))
+- *(deps)* update release-plz/action action to v0.5.133 ([#140](https://github.com/mahito1594/sf-pkgen-rs/pull/140))
+- *(deps)* update dtolnay/rust-toolchain digest to 6bed076 ([#136](https://github.com/mahito1594/sf-pkgen-rs/pull/136))
+- *(deps)* update taiki-e/install-action action to v2.87.6 ([#139](https://github.com/mahito1594/sf-pkgen-rs/pull/139))
+- *(deps)* lock file maintenance ([#135](https://github.com/mahito1594/sf-pkgen-rs/pull/135))
+- *(deps)* update taiki-e/install-action action to v2.87.5 ([#138](https://github.com/mahito1594/sf-pkgen-rs/pull/138))
+- *(deps)* update release-plz/action action to v0.5.132 ([#137](https://github.com/mahito1594/sf-pkgen-rs/pull/137))
+- *(deps)* update taiki-e/install-action action to v2.87.2 ([#134](https://github.com/mahito1594/sf-pkgen-rs/pull/134))
+- *(deps)* update taiki-e/install-action action to v2.87.1 ([#132](https://github.com/mahito1594/sf-pkgen-rs/pull/132))
+
 ## [1.1.2](https://github.com/mahito1594/sf-pkgen-rs/compare/v1.1.1...v1.1.2) - 2026-08-28
 
 ### Fixed
