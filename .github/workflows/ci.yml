@@ -14,9 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CARGO_ABOUT_VERSION: "0.8.4"
-
 defaults:
   run:
     shell: bash
@@ -74,16 +71,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Cache cargo-about
-        id: cache-cargo-about
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cargo/bin/cargo-about
-          key: ${{ runner.os }}-cargo-about-${{ env.CARGO_ABOUT_VERSION }}
-
       - name: Install cargo-about
-        if: steps.cache-cargo-about.outputs.cache-hit != 'true'
-        run: cargo install --locked cargo-about@${{ env.CARGO_ABOUT_VERSION }}
+        uses: taiki-e/install-action@3f74d7c16a4242f1c95561e98edc25d36adb4375 # v2.87.12
+        with:
+          tool: cargo-about
 
       - name: Verify NOTICE is up to date
         run: |
