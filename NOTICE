@@ -2561,7 +2561,6 @@ Used by:
   - errno
   - fastrand
   - hashbrown
-  - hashbrown
   - heck
   - itertools
   - linux-raw-sys
